@@ -1,4 +1,4 @@
----
+
 
 ## 🌟 Project Overview
 
@@ -49,3 +49,13 @@ Integrations: Stripe/PayPal API (Payments), SendGrid (Email Notifications)
 ✅ Payment Gateway: Seamless transaction handling for paid events.
 
 ✅ Real-time Notifications: Automated email updates and reminders.
+
+---
+
+## 👨‍💻 Author
+
+**Youssef Taha**  
+- 📧 Email: yousif.t.abdulwahab@gmail.com 
+- 🔗 [LinkedIn](https://www.linkedin.com/in/yousif-taha-89454922b/)  
+- 🔗 [GitHub](https://github.com/yosif-taha)  
+---
