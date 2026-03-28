@@ -1,7 +1,13 @@
-🌟 Project Overview
+---
+
+## 🌟 Project Overview
+
 EventHub is a robust, production-grade Web API designed to streamline event organization and attendance. From hosting large-scale conferences to small workshops, EventHub handles user roles (Admin, Organizer, Attendee), event lifecycles, real-time notifications, and secure payment processing.
 
-🏗️ Architectural Excellence
+---
+
+## 🏗️ Architectural Excellence
+
 The project is engineered using Clean Architecture principles to ensure high maintainability, testability, and separation of concerns:
 
 Domain: Pure business logic and entities.
@@ -14,7 +20,10 @@ Persistence: EF Core with SQL Server using a Code-First approach.
 
 API: RESTful endpoints with JWT Authentication and Swagger documentation.
 
-🛠️ Tech Stack
+---
+
+## 🛠️ Tech Stack
+
 Framework: .NET 9.0 (ASP.NET Core Web API)
 
 Database: SQL Server + Entity Framework Core
@@ -27,7 +36,10 @@ Tools: AutoMapper, FluentValidation, MediatR
 
 Integrations: Stripe/PayPal API (Payments), SendGrid (Email Notifications)
 
-🚀 Key Features
+---
+
+## 🚀 Key Features
+
 ✅ User Management: Role-based access control (RBAC).
 
 ✅ Event Engine: Create, manage, and browse events with category filtering.
