@@ -7,7 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="MediatR" Version="14.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\EventHub.Domin\EventHub.Domin.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Common\Responses\" />
   </ItemGroup>
 
 </Project>
