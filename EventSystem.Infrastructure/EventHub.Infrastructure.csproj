@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.15.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\EventHub.Application\EventHub.Application.csproj" />
   </ItemGroup>
 

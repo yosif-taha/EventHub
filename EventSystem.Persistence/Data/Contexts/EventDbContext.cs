@@ -1,6 +1,7 @@
 ﻿using EventHub.Domin.Common;
 using EventHub.Domin.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,9 +14,10 @@ using System.Threading.Tasks;
 
 namespace EventHub.Persistence.Data.Contexts
 {
-    public class EventDbContext : DbContext
+    public class EventDbContext: IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
-        public EventDbContext(DbContextOptions<EventDbContext> options) : base(options)
+        public EventDbContext(DbContextOptions<EventDbContext> options) 
+            : base(options)
         {
         }
 

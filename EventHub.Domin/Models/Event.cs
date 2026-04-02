@@ -21,8 +21,8 @@ namespace EventHub.Domin.Models
         public ApplicationUser Organizer { get; set; } = null!; // Navigation property
         public Guid? CategoryId { get; set; } = Guid.CreateVersion7();  // Foreign key to Category
         public EventCategory Category { get; set; } = null!; // Navigation property
-        public List<Registration> Registrations { get; set; } = new List<Registration>(); // Navigation property
-        public List<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>(); // Navigation property
-        public List<Notification> Notifications { get; set; } = new List<Notification>(); // Navigation property
+        public List<Registration> Registrations { get; set; } = []; // Navigation property
+        public List<PaymentTransaction> PaymentTransactions { get; set; } = []; // Navigation property
+        public List<Notification> Notifications { get; set; } = []; // Navigation property
     }
 }
