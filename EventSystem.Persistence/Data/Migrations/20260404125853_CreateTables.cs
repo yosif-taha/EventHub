@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EventHub.Persistence.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreateTables : Migration
+    public partial class CreateTables : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -220,8 +220,6 @@ namespace EventHub.Persistence.Data.Migrations
                     NotificationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ApplicationUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    EventId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -235,16 +233,6 @@ namespace EventHub.Persistence.Data.Migrations
                         principalTable: "Events",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Notifications_Events_EventId1",
-                        column: x => x.EventId1,
-                        principalTable: "Events",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Notifications_Users_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Notifications_Users_UserId",
                         column: x => x.UserId,
@@ -264,8 +252,6 @@ namespace EventHub.Persistence.Data.Migrations
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ApplicationUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    EventId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -279,16 +265,6 @@ namespace EventHub.Persistence.Data.Migrations
                         principalTable: "Events",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PaymentTransactions_Events_EventId1",
-                        column: x => x.EventId1,
-                        principalTable: "Events",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_PaymentTransactions_Users_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_PaymentTransactions_Users_UserId",
                         column: x => x.UserId,
@@ -344,19 +320,9 @@ namespace EventHub.Persistence.Data.Migrations
                 column: "OrganizerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Notifications_ApplicationUserId",
-                table: "Notifications",
-                column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_EventId",
                 table: "Notifications",
                 column: "EventId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Notifications_EventId1",
-                table: "Notifications",
-                column: "EventId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_UserId",
@@ -364,19 +330,9 @@ namespace EventHub.Persistence.Data.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PaymentTransactions_ApplicationUserId",
-                table: "PaymentTransactions",
-                column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PaymentTransactions_EventId",
                 table: "PaymentTransactions",
                 column: "EventId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PaymentTransactions_EventId1",
-                table: "PaymentTransactions",
-                column: "EventId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PaymentTransactions_UserId",

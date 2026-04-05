@@ -1,5 +1,6 @@
 ﻿using AutoMapper.QueryableExtensions;
 using EventHub.Application.Common.Dtos.Account;
+using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;
 using EventHub.Domin.Models;
 using Microsoft.AspNetCore.Identity;
@@ -16,35 +17,33 @@ namespace EventHub.Infrastructure.Account
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
 
-        public async Task<UserProfileResponse> GetUserProfileAsync(string userId)
+        public async Task<RequestResult<UserProfileResponse>> GetUserProfileAsync(string userId, CancellationToken ct = default)
         {
             var user = await _userManager.Users
                 .Where(u => u.Id.ToString() == userId)
                 .SingleAsync();
-            return new UserProfileResponse(user.Id.ToString(), user.UserName!, user.FullName);
-
+            if (user == null)         
+                return RequestResult<UserProfileResponse>.Failure(ErrorCode.UserNotFound);
+            return RequestResult<UserProfileResponse>.Success(new UserProfileResponse(user.Email!, user.UserName!, user.FullName));
         }
-        public async Task<bool> UpdateUserProfileAsync(string userId, string fullName)
+        public async Task<RequestResult<bool>> UpdateUserProfileAsync(string userId, string fullName , CancellationToken ct = default)
         {
-            //var user = await _userManager.Users
-            //     .Where(u => u.Id.ToString() == userId)
-            //     .SingleAsync();
-
-            //user.FullName = fullName;
-            //var result = await _userManager.UpdateAsync(user);
-            //return result.Succeeded;
             var result = await _userManager.Users
                 .Where(u => u.Id.ToString() == userId)
                 .ExecuteUpdateAsync(setters  => 
                   setters.SetProperty(u => u.FullName, fullName)
                 );
-            return result == 1 ? true : false;
+          if(result == 0)
+                return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
+            return RequestResult<bool>.Success(true);
         }
-        public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+        public async Task<RequestResult<bool>> ChangePasswordAsync(string userId, string currentPassword, string newPassword , CancellationToken ct = default) 
         {
             var user = await _userManager.FindByIdAsync(userId);
             var result = await _userManager.ChangePasswordAsync(user!, currentPassword, newPassword);
-            return result.Succeeded;
+            if (!result.Succeeded)
+                 return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
+            return RequestResult<bool>.Success(result.Succeeded);   
         }
     }
 }

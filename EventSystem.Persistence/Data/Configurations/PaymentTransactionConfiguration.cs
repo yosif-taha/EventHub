@@ -25,12 +25,12 @@ namespace EventHub.Persistence.Data.Configurations
 
 
             builder.HasOne(pt => pt.User)
-                   .WithMany()
+                   .WithMany(u => u.PaymentTransactions)
                    .HasForeignKey(pt => pt.UserId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(pt => pt.Event)
-                   .WithMany()
+                   .WithMany(e => e.PaymentTransactions)
                    .HasForeignKey(pt => pt.EventId)
                    .OnDelete(DeleteBehavior.Restrict);
         }

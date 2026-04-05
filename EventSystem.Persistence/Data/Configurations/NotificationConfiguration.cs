@@ -19,12 +19,12 @@ namespace EventHub.Persistence.Data.Configurations
             builder.Property(n => n.Message).HasMaxLength(1000).IsRequired();
 
             builder.HasOne(n => n.User)
-                   .WithMany()
+                   .WithMany(u => u.Notifications)
                    .HasForeignKey(n => n.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(n => n.Event)
-                   .WithMany()
+                   .WithMany(e => e.Notifications)
                    .HasForeignKey(n => n.EventId)
                    .OnDelete(DeleteBehavior.Cascade);
         }

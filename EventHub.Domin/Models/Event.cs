@@ -17,9 +17,9 @@ namespace EventHub.Domin.Models
         public int MaxAttendees { get; set; }
         public EventStatus Status { get; set; }
         public bool PaymentRequired { get; set; }
-        public Guid OrganizerId { get; set; } = Guid.CreateVersion7(); // Foreign key to ApplicationUser
+        public Guid OrganizerId { get; set; } // Foreign key to ApplicationUser
         public ApplicationUser Organizer { get; set; } = null!; // Navigation property
-        public Guid? CategoryId { get; set; } = Guid.CreateVersion7();  // Foreign key to Category
+        public Guid? CategoryId { get; set; }  // Foreign key to Category
         public EventCategory Category { get; set; } = null!; // Navigation property
         public List<Registration> Registrations { get; set; } = []; // Navigation property
         public List<PaymentTransaction> PaymentTransactions { get; set; } = []; // Navigation property

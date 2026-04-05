@@ -185,16 +185,10 @@ namespace EventHub.Persistence.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ApplicationUserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("EventId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("EventId1")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsDeleted")
@@ -216,11 +210,7 @@ namespace EventHub.Persistence.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
-
                     b.HasIndex("EventId");
-
-                    b.HasIndex("EventId1");
 
                     b.HasIndex("UserId");
 
@@ -235,16 +225,10 @@ namespace EventHub.Persistence.Data.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid?>("ApplicationUserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("EventId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("EventId1")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ExternalTransactionId")
@@ -270,11 +254,7 @@ namespace EventHub.Persistence.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
-
                     b.HasIndex("EventId");
-
-                    b.HasIndex("EventId1");
 
                     b.HasIndex("UserId");
 
@@ -487,22 +467,14 @@ namespace EventHub.Persistence.Data.Migrations
 
             modelBuilder.Entity("EventHub.Domin.Models.Notification", b =>
                 {
-                    b.HasOne("EventHub.Domin.Models.ApplicationUser", null)
-                        .WithMany("Notifications")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("EventHub.Domin.Models.Event", "Event")
-                        .WithMany()
+                        .WithMany("Notifications")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EventHub.Domin.Models.Event", null)
-                        .WithMany("Notifications")
-                        .HasForeignKey("EventId1");
-
                     b.HasOne("EventHub.Domin.Models.ApplicationUser", "User")
-                        .WithMany()
+                        .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -514,22 +486,14 @@ namespace EventHub.Persistence.Data.Migrations
 
             modelBuilder.Entity("EventHub.Domin.Models.PaymentTransaction", b =>
                 {
-                    b.HasOne("EventHub.Domin.Models.ApplicationUser", null)
-                        .WithMany("PaymentTransactions")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("EventHub.Domin.Models.Event", "Event")
-                        .WithMany()
+                        .WithMany("PaymentTransactions")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("EventHub.Domin.Models.Event", null)
-                        .WithMany("PaymentTransactions")
-                        .HasForeignKey("EventId1");
-
                     b.HasOne("EventHub.Domin.Models.ApplicationUser", "User")
-                        .WithMany()
+                        .WithMany("PaymentTransactions")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
