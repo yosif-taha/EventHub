@@ -8,7 +8,7 @@ namespace EventHub.Application.Common.Dtos.Account
 {
     public record UserProfileResponse(
         string Email,
-        string UserNAme,
+        string UserName,
         string FullName
         );
     

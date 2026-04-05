@@ -1,4 +1,5 @@
 ﻿using EventHub.Application.Common.Dtos.Auth;
+using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;
 using EventHub.Domin.Enums;
 using EventHub.Domin.Models;
@@ -27,74 +28,46 @@ namespace EventHub.Infrastructure.Auth
         private readonly IEmailService _emailService = emailService;
         private readonly IHttpContextAccessor _httpContext = httpContext;
         private readonly int _refreshTokenExpiryDays = 14;
-        public async Task<AuthResponse?> LoginAsync(string email, string password, CancellationToken ct = default)
+        public async Task<RequestResult<AuthResponse?>> LoginAsync(string email, string password, CancellationToken ct = default)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user is null) return null!;
+            if (user is null)
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.UserNotFound);
 
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
-            if (!isPasswordValid) return null!;
+            if (!isPasswordValid)
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.InvalidCredentials);
 
-            // Generate Token
-            var (token, expiresIn) = await _jwtProvider.GenerateTokenAsync(user);
-
-            // Generate RefreshToken
-            var refreshtoken = GenerateRefreshToken();
-            var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenExpiryDays);
-
-            // Store RefreshToken in the database
-            user.RefreshTokens.Add(new RefreshTokens
+            try
             {
-                Token = refreshtoken,
-                ExpiresOn = refreshTokenExpiration,
-            });
+                // Generate Token
+                var (token, expiresIn) = await _jwtProvider.GenerateTokenAsync(user);
 
-            await _userManager.UpdateAsync(user);
+                // Generate RefreshToken
+                var refreshtoken = GenerateRefreshToken();
+                var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenExpiryDays);
 
-            return new AuthResponse(user.Id.ToString(), user.Email, user.FullName, token, expiresIn, refreshtoken, refreshTokenExpiration);
+                // Store RefreshToken in the database
+                user.RefreshTokens.Add(new RefreshTokens
+                {
+                    Token = refreshtoken,
+                    ExpiresOn = refreshTokenExpiration,
+                });
 
-        }
-        public async Task<AuthResponse?> GenerateNewTokensAsync(string token, string refreshToken, CancellationToken ct = default)
-        {
-            var userId = _jwtProvider.ValidateToken(token);
-            if (userId is null)
-                return null;
+                await _userManager.UpdateAsync(user);
+                return RequestResult<AuthResponse?>.Success(new AuthResponse(user.Id.ToString(), user.Email, user.FullName, token, expiresIn, refreshtoken, refreshTokenExpiration));
 
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user is null)
-                return null;
-
-            var storedRefreshToken = user.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshToken && rt.IsActive);
-            if (storedRefreshToken is null)
-                return null;
-
-            storedRefreshToken.RevokedOn = DateTime.UtcNow;
-
-            // Generate new Tokens (Jwt token & RefreshToken)
-
-            // Generate Token
-            var (newtoken, expiresIn) = await _jwtProvider.GenerateTokenAsync(user);
-
-            // Generate RefreshToken
-            var newrefreshtoken = GenerateRefreshToken();
-            var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenExpiryDays);
-
-            // Store RefreshToken in the database
-            user.RefreshTokens.Add(new RefreshTokens
+            }
+            catch
             {
-                Token = newrefreshtoken,
-                ExpiresOn = refreshTokenExpiration,
-            });
-
-            await _userManager.UpdateAsync(user);
-
-            return new AuthResponse(userId, user.Email, user.FullName, newtoken, expiresIn, newrefreshtoken, refreshTokenExpiration);
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.InternalServerError);
+            }
         }
-        public async Task<bool> RegisterAsync(string email, string password, string fullName , UserRole role, CancellationToken ct = default)
+        public async Task<RequestResult<Guid>> RegisterAsync(string email, string password, string fullName, UserRole role, CancellationToken ct = default)
         {
             bool emailIsAlreadyUsed = await _userManager.Users.AnyAsync(u => u.Email == email, ct);
             if (emailIsAlreadyUsed)
-                return false;
+                return RequestResult<Guid>.Failure(ErrorCode.UserAlreadyExist);
 
             var user = new ApplicationUser
             {
@@ -113,19 +86,60 @@ namespace EventHub.Infrastructure.Auth
 
                 //  Send confirmation email
                 await SendConfirmationEmailAsync(user, code);
-                return true;
+                return RequestResult<Guid>.Success(user.Id);
             }
 
-            return false;
+            return RequestResult<Guid>.Failure(ErrorCode.DatabaseError);
         }
-        public async Task<bool> ConfirmEmailAsync(string userId, string urlCode)
+        public async Task<RequestResult<AuthResponse?>> GenerateNewTokensAsync(string token, string refreshToken, CancellationToken ct = default)
+        {
+            var userId = _jwtProvider.ValidateToken(token);
+            if (userId is null)
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.InvalidCredentials);
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user is null)
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.UserNotFound);
+
+            var storedRefreshToken = user.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshToken && rt.IsActive);
+            if (storedRefreshToken is null)
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.InvalidRefreshToken);
+
+            storedRefreshToken.RevokedOn = DateTime.UtcNow;
+
+            // Generate new Tokens (Jwt token & RefreshToken)
+            try
+            {
+                // Generate Token
+                var (newtoken, expiresIn) = await _jwtProvider.GenerateTokenAsync(user);
+
+                // Generate RefreshToken
+                var newrefreshtoken = GenerateRefreshToken();
+                var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenExpiryDays);
+
+                // Store RefreshToken in the database
+                user.RefreshTokens.Add(new RefreshTokens
+                {
+                    Token = newrefreshtoken,
+                    ExpiresOn = refreshTokenExpiration,
+                });
+
+                await _userManager.UpdateAsync(user);
+                return RequestResult<AuthResponse?>.Success(new AuthResponse(userId, user.Email, user.FullName, newtoken, expiresIn, newrefreshtoken, refreshTokenExpiration));
+            }
+            catch
+            { 
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.InternalServerError);
+            }
+        }
+        public async Task<RequestResult<bool>> ConfirmEmailAsync(string userId, string urlCode , CancellationToken c)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user is null)
-                return false;
+                return RequestResult<bool>.Failure(ErrorCode.UserNotFound);
 
             if (user.EmailConfirmed)
-                return false;
+                return RequestResult<bool>.Failure(ErrorCode.EmailAlreadyConfirmed);
 
             var code = urlCode;
             try
@@ -134,49 +148,59 @@ namespace EventHub.Infrastructure.Auth
             }
             catch
             {
-                return false;
+               return RequestResult<bool>.Failure(ErrorCode.InvalidCredentials);
             }
             var result = await _userManager.ConfirmEmailAsync(user, code);
-            return result.Succeeded;
+            if (!result.Succeeded)
+                return RequestResult<bool>.Failure(ErrorCode.EmailNotConfirmed);
+            return RequestResult<bool>.Success(true);
         }
-        public async Task<bool> ResendConfirmationEmailAsync(string email)
+        public async Task<RequestResult<bool>> ResendConfirmationEmailAsync(string email , CancellationToken ct = default)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
-                return false;
+                return RequestResult<bool>.Failure(ErrorCode.UserNotFound);
 
             // Generate Code
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));  // Encode the code to make it into URL 
+            if (code is null)
+                return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
 
             // Send confirmation email    
-            await SendConfirmationEmailAsync(user, code);
-            return true;
+            await SendConfirmationEmailAsync(user, code);     
+            return RequestResult<bool>.Success(true);
         }
-        public async Task<bool> SendResetPasswordAsync(string email)
+        public async Task<RequestResult<bool>> SendResetPasswordAsync(string email , CancellationToken ct = default)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
-                return false;
-            if(!user.EmailConfirmed)
-                 return false; 
+               return RequestResult<bool>.Failure(ErrorCode.UserNotFound);  
+            if (!user.EmailConfirmed)
+                return RequestResult<bool>.Failure(ErrorCode.EmailAlreadyConfirmed);
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user!);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));  // Encode the code to make it into URL 
+            if (code is null)
+                return RequestResult<bool>.Failure(ErrorCode.InternalServerError);  
 
             // Send confirmation email    
             await SendResetPasswordEmailAsync(user!, code);
-            return true;
+            return RequestResult<bool>.Success(true);
         }
-        public async Task<bool> ResetPasswordAsync(string email, string code, string newPassword)
+        public async Task<RequestResult<bool>> ResetPasswordAsync(string email, string code, string newPassword , CancellationToken ct = default)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user is null || !user.EmailConfirmed)
-                return false;
+            if (user is null)
+               return RequestResult<bool>.Failure(ErrorCode.UserNotFound);
+            if (!user.EmailConfirmed)
+                return RequestResult<bool>.Failure(ErrorCode.EmailNotConfirmed);
 
             var decode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code)); // Decode the code from URL
             var result = await _userManager.ResetPasswordAsync(user, decode, newPassword);
-            return result.Succeeded;
+            if (!result.Succeeded)
+                return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
+            return RequestResult<bool>.Success(true);
         }
         private static string GenerateRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         private async Task SendConfirmationEmailAsync(ApplicationUser user, string code)

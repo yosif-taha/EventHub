@@ -1,4 +1,5 @@
 ﻿using EventHub.Application.Common.Dtos.Account;
+using EventHub.Application.Common.Responses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,8 @@ namespace EventHub.Application.Contracts
 {
     public interface IAccountService
     {
-        Task<UserProfileResponse> GetUserProfileAsync(string userId);
-        Task<bool> UpdateUserProfileAsync(string userId, string fullName);
-        Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
+        Task<RequestResult<UserProfileResponse>> GetUserProfileAsync(string userId , CancellationToken ct = default);
+        Task<RequestResult<bool>> UpdateUserProfileAsync(string userId, string fullName , CancellationToken ct = default);
+        Task<RequestResult<bool>> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken ct = default);
     }
 }
