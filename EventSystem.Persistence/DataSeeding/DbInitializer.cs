@@ -4,22 +4,13 @@ using EventHub.Domin.Models;
 using EventHub.Persistence.Data.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Persistence.DataSeeding
 {
-    public class DbInitializer(EventDbContext context ,
-        UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole<Guid>> roleManager) : IDbInitializer
+    public class DbInitializer(EventDbContext _context ,
+        UserManager<ApplicationUser> _userManager,
+        RoleManager<IdentityRole<Guid>> _roleManager) : IDbInitializer
     {
-        private readonly EventDbContext _context = context;
-        private readonly UserManager<ApplicationUser> _userManager = userManager;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager = roleManager;
-
         public async Task IntiliazeAsync()
         {
             if (_context.Database.GetPendingMigrationsAsync().GetAwaiter().GetResult().Any()) // GetPendingMigrationsAsync():- this fun to get all migration not appling to database. Any():- return true or false. 

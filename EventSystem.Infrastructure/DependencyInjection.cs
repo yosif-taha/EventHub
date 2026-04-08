@@ -1,14 +1,10 @@
 ﻿using EventHub.Application.Contracts;
 using EventHub.Infrastructure.Account;
 using EventHub.Infrastructure.Auth;
+using EventHub.Infrastructure.Common;
 using EventHub.Infrastructure.Email;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Infrastructure
 {
@@ -24,6 +20,12 @@ namespace EventHub.Infrastructure
             // Email
             services.Configure<EmailSettings>(configuration.GetSection(nameof(EmailSettings)));
             services.AddScoped<IEmailService, EmailService>();
+
+            // User Context
+            services.AddScoped<IUserContext, UserContext>();
+
+            // Pagination
+            services.AddScoped<IDbExecutor, DbExecutor>();
 
             // JWT Options Validation
             services.AddOptions<JwtOptions>()

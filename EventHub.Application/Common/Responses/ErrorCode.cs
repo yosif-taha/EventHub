@@ -116,6 +116,9 @@ namespace EventHub.Application.Common.Responses
         [Description("Cannot delete category because it is currently in use.")]
         CategoryInUse = 601,
 
+        [Description("Cannot Add category because it is currently Exist.")]
+        CategoryAlreadyExist = 602,
+
         // --- Account/Profile ---
         [Description("Failed to update profile information.")]
         ProfileUpdateFailed = 700,

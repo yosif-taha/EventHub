@@ -106,6 +106,9 @@ namespace EventHub.Persistence.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("CurrentAttendeesCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -113,6 +116,14 @@ namespace EventHub.Persistence.Data.Migrations
 
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsAvailable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsCancelled")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -130,6 +141,9 @@ namespace EventHub.Persistence.Data.Migrations
 
                     b.Property<bool>("PaymentRequired")
                         .HasColumnType("bit");
+
+                    b.Property<int>("RemainingSlots")
+                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()

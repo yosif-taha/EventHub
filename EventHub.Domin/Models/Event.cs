@@ -1,10 +1,5 @@
 ﻿using EventHub.Domin.Common;
 using EventHub.Domin.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Domin.Models
 {
@@ -17,6 +12,10 @@ namespace EventHub.Domin.Models
         public int MaxAttendees { get; set; }
         public EventStatus Status { get; set; }
         public bool PaymentRequired { get; set; }
+        public int CurrentAttendeesCount { get; set; }
+        public int RemainingSlots { get; set; }
+        public bool IsAvailable { get; set; } = true;
+        public bool IsCancelled { get; set; }
         public Guid OrganizerId { get; set; } // Foreign key to ApplicationUser
         public ApplicationUser Organizer { get; set; } = null!; // Navigation property
         public Guid? CategoryId { get; set; }  // Foreign key to Category

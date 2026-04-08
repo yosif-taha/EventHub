@@ -1,13 +1,9 @@
 ﻿using EventHub.Application.Common.Behaviors;
+using EventHub.Application.Common.Mapping.Category;
+using EventHub.Application.Common.Mapping.Events;
 using FluentValidation;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Application
 {
@@ -21,6 +17,10 @@ namespace EventHub.Application
                 cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
             });
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+            // AutoMapper
+            services.AddAutoMapper(m => m.AddProfile(new EventProfile()));
+            services.AddAutoMapper(m => m.AddProfile(new CategoryProfile()));
 
             return services;
         }

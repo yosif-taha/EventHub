@@ -1,27 +1,19 @@
-﻿using AutoMapper.QueryableExtensions;
-using EventHub.Application.Common.Dtos.Account;
+﻿using EventHub.Application.Common.Dtos.Account;
 using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;
 using EventHub.Domin.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Infrastructure.Account
 {
-    public class AccountService(UserManager<ApplicationUser> userManager) : IAccountService
+    public class AccountService(UserManager<ApplicationUser> _userManager) : IAccountService
     {
-        private readonly UserManager<ApplicationUser> _userManager = userManager;
-
-        public async Task<RequestResult<UserProfileResponse>> GetUserProfileAsync(string userId, CancellationToken ct = default)
+        public async Task<RequestResult<UserProfileResponse>> GetUserProfileAsync(string userId, CancellationToken ct)
         {
             var user = await _userManager.Users
                 .Where(u => u.Id.ToString() == userId)
-                .SingleAsync();
+                .SingleAsync(ct);
             if (user == null)         
                 return RequestResult<UserProfileResponse>.Failure(ErrorCode.UserNotFound);
             return RequestResult<UserProfileResponse>.Success(new UserProfileResponse(user.Email!, user.UserName!, user.FullName));
@@ -32,15 +24,17 @@ namespace EventHub.Infrastructure.Account
                 .Where(u => u.Id.ToString() == userId)
                 .ExecuteUpdateAsync(setters  => 
                   setters.SetProperty(u => u.FullName, fullName)
-                );
+                 , ct);
           if(result == 0)
                 return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
             return RequestResult<bool>.Success(true);
         }
-        public async Task<RequestResult<bool>> ChangePasswordAsync(string userId, string currentPassword, string newPassword , CancellationToken ct = default) 
+        public async Task<RequestResult<bool>> ChangePasswordAsync(string userId, string currentPassword, string newPassword , CancellationToken ct) 
         {
+            ct.ThrowIfCancellationRequested();
             var user = await _userManager.FindByIdAsync(userId);
             var result = await _userManager.ChangePasswordAsync(user!, currentPassword, newPassword);
+            ct.ThrowIfCancellationRequested();
             if (!result.Succeeded)
                  return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
             return RequestResult<bool>.Success(result.Succeeded);   

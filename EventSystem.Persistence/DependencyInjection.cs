@@ -1,14 +1,10 @@
 ﻿using EventHub.Application.Contracts;
 using EventHub.Persistence.Data.Contexts;
 using EventHub.Persistence.DataSeeding;
+using EventHub.Persistence.Reposetories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Persistence
 {
@@ -19,6 +15,7 @@ namespace EventHub.Persistence
             services.AddDbContext<EventDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IDbInitializer, DbInitializer>();
 
             return services;

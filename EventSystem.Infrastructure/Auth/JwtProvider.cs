@@ -1,24 +1,17 @@
 ﻿using EventHub.Application.Contracts;
 using EventHub.Domin.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Infrastructure.Auth
 {
-    public class JwtProvider(IOptions<JwtOptions> options, UserManager<ApplicationUser> userManager) : IJwtProvider
+    public class JwtProvider(IOptions<JwtOptions> options, UserManager<ApplicationUser> _userManager) : IJwtProvider
     {
         private readonly JwtOptions _options = options.Value;
-        private readonly UserManager<ApplicationUser> _userManager = userManager;
-
         public async Task<(string token, int expiresIn)> GenerateTokenAsync(ApplicationUser user)
         {
             // Create Claims
@@ -46,7 +39,7 @@ namespace EventHub.Infrastructure.Auth
                 issuer: _options.Issuer,
                 audience: _options.Audience,
                 claims: authClaims,
-                expires: DateTime.UtcNow.AddMinutes(_options.ExpiresMinutes),
+                expires: DateTime.UtcNow.AddHours(_options.ExpiresMinutes),
                 signingCredentials: Credentials
             );
 
