@@ -1,11 +1,6 @@
 ﻿using EventHub.Domin.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Persistence.Data.Configurations
 {
@@ -19,6 +14,7 @@ namespace EventHub.Persistence.Data.Configurations
             builder.Property(e => e.Title).HasMaxLength(200).IsRequired();
             builder.Property(e => e.Description).HasMaxLength(2000);
             builder.Property(e => e.Location).HasMaxLength(500).IsRequired();
+            builder.Property(e => e.IsAvailable).HasDefaultValue(true);
 
            
             builder.Property(e => e.Status)

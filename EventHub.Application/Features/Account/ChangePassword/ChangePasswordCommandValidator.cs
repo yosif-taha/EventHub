@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EventHub.Application.Features.Account.ChangePassword
 {
-    public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCommand>
+    public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCommand> 
     {
         public ChangePasswordCommandValidator()
         {

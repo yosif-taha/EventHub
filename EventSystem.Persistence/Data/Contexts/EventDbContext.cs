@@ -4,19 +4,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Persistence.Data.Contexts
 {
-    public class EventDbContext: IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+    public class EventDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
-        public EventDbContext(DbContextOptions<EventDbContext> options) 
+        public EventDbContext(DbContextOptions<EventDbContext> options)
             : base(options)
         {
         }
@@ -65,8 +61,25 @@ namespace EventHub.Persistence.Data.Contexts
 
             // ignore this tables from mapping to tables in DB
             modelBuilder.Ignore<IdentityUserToken<Guid>>();
-           
-           
+
+            CheckIsDeletedQueryFilter(modelBuilder); // Apply global query filter for IsDeleted property
+
+        }
+
+        private void CheckIsDeletedQueryFilter(ModelBuilder modelBuilder)
+        {
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(BaseModel).IsAssignableFrom(entityType.ClrType)) // لو عامل Interface اسمها ISoftDelete
+                {
+                    var parameter = Expression.Parameter(entityType.ClrType, "e");
+                    var filter = Expression.Lambda(
+                        Expression.Not(Expression.Property(parameter, "IsDeleted")),
+                        parameter);
+
+                    entityType.SetQueryFilter(filter);
+                }
+            }
         }
     }
 }

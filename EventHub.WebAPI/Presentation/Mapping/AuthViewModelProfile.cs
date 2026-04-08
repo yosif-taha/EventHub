@@ -2,7 +2,7 @@
 using EventHub.Application.Common.Dtos.Auth;
 using EventHub.WebAPI.Presentation.ViewModels.Auth;
 
-namespace EventHub.WebAPI.Presentation.Mapping.Auth
+namespace EventHub.WebAPI.Presentation.Mapping
 {
     public class AuthViewModelProfile : Profile
     {

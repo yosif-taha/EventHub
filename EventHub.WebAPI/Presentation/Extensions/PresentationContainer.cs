@@ -2,12 +2,10 @@
 using EventHub.Domin.Models;
 using EventHub.Infrastructure.Auth;
 using EventHub.Persistence.Data.Contexts;
-using EventHub.WebAPI.Presentation.Mapping.Account;
-using EventHub.WebAPI.Presentation.Mapping.Auth;
+using EventHub.WebAPI.Presentation.Mapping;
 using EventHub.WebAPI.Presentation.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -30,6 +28,8 @@ namespace EventHub.WebAPI.Presentation.Extensions
             // AutoMapper
             services.AddAutoMapper(m => m.AddProfile(new AuthViewModelProfile()));
             services.AddAutoMapper(m => m.AddProfile(new AccountViewModelProfile()));
+            services.AddAutoMapper(m => m.AddProfile(new EventViewModelProfile()));
+            services.AddAutoMapper(m => m.AddProfile(new CategoryViewModelProfile()));
 
             // Identity
             services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()

@@ -1,20 +1,14 @@
 ﻿using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Application.Features.Auth.ConfirmEmail
 {
-    public class ConfirmEmailCommandHandler(IAuthService authService) : IRequestHandler<ConfirmEmailCommand, RequestResult<bool>>
+    public class ConfirmEmailCommandHandler(IAuthService _authService) : IRequestHandler<ConfirmEmailCommand, RequestResult<bool>>
     {
-        private readonly IAuthService _authService = authService;
-
         public async Task<RequestResult<bool>> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var data = await _authService.ConfirmEmailAsync(request.UserId, request.Code, cancellationToken);
             if(!data.IsSuccess)
                 return RequestResult<bool>.Failure(data.ErrorCode);
