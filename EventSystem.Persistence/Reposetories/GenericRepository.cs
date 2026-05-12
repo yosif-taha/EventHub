@@ -4,7 +4,7 @@ using EventHub.Application.Contracts;
 using EventHub.Domin.Common;
 using EventHub.Persistence.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
 
 namespace EventHub.Persistence.Reposetories
@@ -27,19 +27,43 @@ namespace EventHub.Persistence.Reposetories
 
         public async Task AddAsync(T entity, CancellationToken cancellationToken) => await _dbSet.AddAsync(entity, cancellationToken);
 
-        public async Task UpdateAsync(Expression<Func<T, bool>> predicate,
-          Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> updateExpression, CancellationToken cancellationToken)
+        public void SaveInclude(T entity, params string[] includeProperties) // Update only the included properties of the entity
         {
-            await _dbSet.Where(predicate).ExecuteUpdateAsync(updateExpression, cancellationToken);
+            var localEntity = _context.Set<T>().Local.FirstOrDefault(e => e.Id == entity.Id);
+            EntityEntry<T> entry;
+            if (localEntity == null)
+            {
+                _context.Set<T>().Attach(entity);
+                entry = _context.Entry(entity);
+            }
+            else
+            { 
+              entry = _context.Entry(localEntity);
+            }
+            foreach(var includeProperty in includeProperties)
+            {
+                var value = entity.GetType().GetProperty(includeProperty)?.GetValue(entity);
+                entry.Property(includeProperty).CurrentValue = value;
+                entry.Property(includeProperty).IsModified = true;
+            }
         }
-
-        public async Task SoftDeleteAsync(Guid id, CancellationToken ct)
+        public void SoftDelete(T entity)
         {
-            await _dbSet
-                .Where(e => EF.Property<Guid>(e, "Id") == id)
-                .ExecuteUpdateAsync(s => s.SetProperty(e => EF.Property<bool>(e, "IsDeleted"), true), ct);
+            var localEntity = _context.Set<T>().Local.FirstOrDefault(e => e.Id == entity.Id);
+            EntityEntry<T> entry;
+            if (localEntity == null)
+            {
+                _context.Set<T>().Attach(entity);
+                entry = _context.Entry(entity);
+            }
+            else
+            {
+                entry = _context.Entry(localEntity);
+            }
+            entity.IsDeleted = true;
+            entry.Property(x => x.IsDeleted).IsModified = true;
         }
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken) => await _context.Set<T>().AnyAsync(predicate, cancellationToken);
 
-        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate) => await _context.Set<T>().AnyAsync(predicate);
     }
 }

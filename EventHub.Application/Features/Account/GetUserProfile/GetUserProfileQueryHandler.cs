@@ -9,7 +9,6 @@ namespace EventHub.Application.Features.Account.GetUserProfile
     {
         public async Task<RequestResult<UserProfileResponse>> Handle(GetUserProfileQuery request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();   
             var data = await  _accountService.GetUserProfileAsync(request.UserId, cancellationToken);
             if (!data.IsSuccess)
                 return RequestResult<UserProfileResponse>.Failure(data.ErrorCode);

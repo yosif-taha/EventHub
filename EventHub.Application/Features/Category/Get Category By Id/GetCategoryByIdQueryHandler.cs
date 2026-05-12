@@ -12,7 +12,6 @@ namespace EventHub.Application.Features.Category.Get_Category_By_Id
     {
         public async Task<RequestResult<CategoryDto>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var categoryDto = await _repository.GetByIdProjectedAsync<CategoryDto>(c => c.Id == request.Id, _mapper.ConfigurationProvider, cancellationToken);
             if (categoryDto is null)
                 return RequestResult<CategoryDto>.Failure(ErrorCode.CategoryNotFound);

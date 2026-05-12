@@ -11,9 +11,8 @@ namespace EventHub.Application.Contracts
         Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
         Task<TResult?> GetByIdProjectedAsync<TResult>(Expression<Func<T, bool>> predicate, IConfigurationProvider configuration, CancellationToken cancellationToken);
         Task AddAsync(T entity, CancellationToken cancellationToken);
-        Task UpdateAsync(Expression<Func<T, bool>> predicate,
-          Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> updateExpression, CancellationToken cancellationToken);
-        Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken);
-        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
+        void SaveInclude(T entity, params string[] includeProperties);
+        void SoftDelete(T entity);
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken);
     }
 }

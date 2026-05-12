@@ -9,7 +9,6 @@ namespace EventHub.Application.Features.Auth.RefreshTokens
     {
         public async Task<RequestResult<AuthResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var result = await _authService.GenerateNewTokensAsync(request.Token, request.RefreshToken, cancellationToken);
             if (!result.IsSuccess)
                 return RequestResult<AuthResponse>.Failure(result.ErrorCode);

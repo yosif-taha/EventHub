@@ -61,7 +61,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         {
             var result = await _mediator.Send(new CreateEventCommand(request.Title, request.Description, request.EventDate, request.Location, request.CategoryId, request.MaxAttendees), ct);
             if (!result.IsSuccess)
-                return new FailedResponseViewModel(result.ErrorCode, result.ErrorCode.GetDescription());
+                return new FailedResponseViewModel(result.ErrorCode, result.Message!);
             return new SuccessResponseViewModelT<Guid>(result.Data, "Event Created Successfuly");
         }
 
@@ -70,7 +70,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         {
             var result = await _mediator.Send(new UpdateEventCommand(request.Id, request.Title, request.Description, request.EventDate, request.Location, request.CategoryId, request.MaxAttendees), ct);
             if (!result.IsSuccess)
-                return new FailedResponseViewModel(result.ErrorCode, result.ErrorCode.GetDescription());
+                return new FailedResponseViewModel(result.ErrorCode, result.Message!);
             return new SuccessResponseViewModelT<Unit>(result.Data, "Event Updated Successfuly");
         }
 

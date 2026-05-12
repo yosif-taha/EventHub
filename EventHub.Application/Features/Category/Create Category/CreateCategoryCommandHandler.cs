@@ -6,19 +6,22 @@ using MediatR;
 
 namespace EventHub.Application.Features.Category.Create_Category
 {
-    public class CreateCategoryCommandHandler(IGenericRepository<EventCategory> _repository, IMapper _mapper) : IRequestHandler<CreateCategoryCommand, RequestResult<Guid>>
+    public class CreateCategoryCommandHandler(IGenericRepository<EventCategory> _repository, IMapper _mapper, IUnitOfWork _unitOfWork) : IRequestHandler<CreateCategoryCommand, RequestResult<Guid>>
     {
         public async Task<RequestResult<Guid>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var exist = await _repository.AnyAsync(x => x.Name == request.Name);
-            if (exist)
-                return RequestResult<Guid>.Failure(ErrorCode.CategoryAlreadyExist);
+            return await _unitOfWork.ExecuteAsync(async () =>
+            {
+                var exist = await _repository.AnyAsync(x => x.Name == request.Name, cancellationToken);
+                if (exist)
+                    return RequestResult<Guid>.Failure(ErrorCode.CategoryAlreadyExist);
 
-            var category = _mapper.Map<EventCategory>(request);
-            await _repository.AddAsync(category, cancellationToken);
+                var category = _mapper.Map<EventCategory>(request);
+                category.CreatedAt = DateTime.UtcNow;
+                await _repository.AddAsync(category, cancellationToken);
 
-            return RequestResult<Guid>.Success(category.Id);
+                return RequestResult<Guid>.Success(category.Id);
+            }, cancellationToken);
         }
     }
 }

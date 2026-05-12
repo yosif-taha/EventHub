@@ -8,7 +8,6 @@ namespace EventHub.Application.Features.Auth.PasswordReset
     {
         public async Task<RequestResult<bool>> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var date = await _authService.ResetPasswordAsync(request.Email,request.Code,request.NewPassword,cancellationToken);
             if(!date.IsSuccess)
                 return RequestResult<bool>.Failure(date.ErrorCode);

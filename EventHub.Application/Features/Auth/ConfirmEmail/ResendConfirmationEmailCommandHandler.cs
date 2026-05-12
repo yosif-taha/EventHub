@@ -9,7 +9,6 @@ namespace EventHub.Application.Features.Auth.ConfirmEmail
     {
         public async Task<RequestResult<bool>> Handle(ResendConfirmationEmailCommand request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var data = await _authService.ResendConfirmationEmailAsync(request.Email, cancellationToken);
             if(!data.IsSuccess)
                 return RequestResult<bool>.Failure(data.ErrorCode);

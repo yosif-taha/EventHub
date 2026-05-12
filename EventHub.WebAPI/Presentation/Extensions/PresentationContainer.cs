@@ -23,7 +23,7 @@ namespace EventHub.WebAPI.Presentation.Extensions
 
             // Register Middlewares
             services.AddTransient<GlobalErrorHandlerMiddleware>();
-            services.AddTransient<TransactionMiddleware>();
+            //services.AddTransient<TransactionMiddleware>();
 
             // AutoMapper
             services.AddAutoMapper(m => m.AddProfile(new AuthViewModelProfile()));
@@ -81,7 +81,7 @@ namespace EventHub.WebAPI.Presentation.Extensions
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseMiddleware<TransactionMiddleware>();
+           // app.UseMiddleware<TransactionMiddleware>();
 
             app.MapControllers();
 

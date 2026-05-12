@@ -5,26 +5,32 @@ using MediatR;
 
 namespace EventHub.Application.Features.Category.Update_Category
 {
-    public class UpdateCategoryCommandHandler(IGenericRepository<EventCategory> _repository) : IRequestHandler<UpdateCategoryCommand, RequestResult<Unit>>
+    public class UpdateCategoryCommandHandler(IGenericRepository<EventCategory> _repository, IUnitOfWork _unitOfWork) : IRequestHandler<UpdateCategoryCommand, RequestResult<Unit>>
     {
         public async Task<RequestResult<Unit>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var category = await _repository.GetByIdAsync(request.Id, cancellationToken);
-            if (category == null) 
-               return RequestResult<Unit>.Failure(ErrorCode.CategoryNotFound);
+            return await _unitOfWork.ExecuteAsync(async () =>
+            {
+                bool categoryExists = await _repository.AnyAsync(x => x.Id == request.Id, cancellationToken);
+                if (!categoryExists)
+                    return RequestResult<Unit>.Failure(ErrorCode.CategoryNotFound);
 
-            var isNameDuplicate = await _repository
-                .AnyAsync(c => c.Name == request.Name && c.Id != request.Id);
-            if (isNameDuplicate)
-                return RequestResult<Unit>.Failure(ErrorCode.CategoryAlreadyExist);
+                bool isNameDuplicate = await _repository.AnyAsync(c => c.Name == request.Name, cancellationToken);
+                if (isNameDuplicate)
+                    return RequestResult<Unit>.Failure(ErrorCode.CategoryAlreadyExist);
 
-             await _repository.UpdateAsync(
-                c => c.Id == request.Id,
-                c => c.SetProperty(c => c.Name, request.Name)
-             , cancellationToken);
+                var category = new EventCategory
+                {
+                    Id = request.Id,
+                    Name = request.Name,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
-            return RequestResult<Unit>.Success(Unit.Value);
+                _repository.SaveInclude(category, nameof(EventCategory.Name), nameof(EventCategory.UpdatedAt));
+
+
+                return RequestResult<Unit>.Success(Unit.Value);
+            }, cancellationToken);
 
         }
     }
