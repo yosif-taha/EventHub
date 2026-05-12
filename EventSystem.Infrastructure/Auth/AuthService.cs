@@ -21,16 +21,13 @@ namespace EventHub.Infrastructure.Auth
         private readonly int _refreshTokenExpiryDays = 14;
         public async Task<RequestResult<AuthResponse?>> LoginAsync(string email, string password, CancellationToken ct)
         {
-            ct.ThrowIfCancellationRequested();
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.UserNotFound);
 
-            ct.ThrowIfCancellationRequested();
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
             if (!isPasswordValid)
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.InvalidCredentials);
-            ct.ThrowIfCancellationRequested();
             try
             {
                 // Generate Token
@@ -47,9 +44,7 @@ namespace EventHub.Infrastructure.Auth
                     ExpiresOn = refreshTokenExpiration,
                 });
 
-                ct.ThrowIfCancellationRequested();
                 await _userManager.UpdateAsync(user);
-                ct.ThrowIfCancellationRequested();
                 return RequestResult<AuthResponse?>.Success(new AuthResponse(user.Id.ToString(), user.Email, user.FullName, token, expiresIn, refreshtoken, refreshTokenExpiration));
 
             }
@@ -72,19 +67,15 @@ namespace EventHub.Infrastructure.Auth
                 Role = role
             };
 
-            ct.ThrowIfCancellationRequested();
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
-                ct.ThrowIfCancellationRequested();
                 // Generate Code
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));  // Encode the code to make it into URL 
 
-                ct.ThrowIfCancellationRequested();
                 //  Send confirmation email
                 await SendConfirmationEmailAsync(user, code);
-                ct.ThrowIfCancellationRequested();
                 return RequestResult<Guid>.Success(user.Id);
             }
 
@@ -92,17 +83,17 @@ namespace EventHub.Infrastructure.Auth
         }
         public async Task<RequestResult<AuthResponse?>> GenerateNewTokensAsync(string token, string refreshToken, CancellationToken ct)
         {
-            ct.ThrowIfCancellationRequested();
+           
             var userId = _jwtProvider.ValidateToken(token);
             if (userId is null)
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.InvalidCredentials);
 
-            ct.ThrowIfCancellationRequested();
+           
             var user = await _userManager.FindByIdAsync(userId);
             if (user is null)
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.UserNotFound);
 
-            ct.ThrowIfCancellationRequested();  
+             
             var storedRefreshToken = user.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshToken && rt.IsActive);
             if (storedRefreshToken is null)
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.InvalidRefreshToken);
@@ -112,7 +103,7 @@ namespace EventHub.Infrastructure.Auth
             // Generate new Tokens (Jwt token & RefreshToken)
             try
             {
-                ct.ThrowIfCancellationRequested();
+               
                 // Generate Token
                 var (newtoken, expiresIn) = await _jwtProvider.GenerateTokenAsync(user);
 
@@ -137,7 +128,7 @@ namespace EventHub.Infrastructure.Auth
         }
         public async Task<RequestResult<bool>> ConfirmEmailAsync(string userId, string urlCode , CancellationToken ct)
         {
-            ct.ThrowIfCancellationRequested();
+           
             var user = await _userManager.FindByIdAsync(userId);
             if (user is null)
                 return RequestResult<bool>.Failure(ErrorCode.UserNotFound);
@@ -145,7 +136,7 @@ namespace EventHub.Infrastructure.Auth
             if (user.EmailConfirmed)
                 return RequestResult<bool>.Failure(ErrorCode.EmailAlreadyConfirmed);
 
-            ct.ThrowIfCancellationRequested();
+           
             var code = urlCode;
             try
             {
@@ -156,53 +147,53 @@ namespace EventHub.Infrastructure.Auth
                return RequestResult<bool>.Failure(ErrorCode.InvalidCredentials);
             }
             var result = await _userManager.ConfirmEmailAsync(user, code);
-            ct.ThrowIfCancellationRequested();
+           
             if (!result.Succeeded)
                 return RequestResult<bool>.Failure(ErrorCode.EmailNotConfirmed);
             return RequestResult<bool>.Success(true);
         }
         public async Task<RequestResult<bool>> ResendConfirmationEmailAsync(string email , CancellationToken ct)
         {
-            ct.ThrowIfCancellationRequested();
+           
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
                 return RequestResult<bool>.Failure(ErrorCode.UserNotFound);
-            ct.ThrowIfCancellationRequested();
+           
             // Generate Code
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));  // Encode the code to make it into URL 
             if (code is null)
                 return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
-            ct.ThrowIfCancellationRequested();
+           
             // Send confirmation email    
             await SendConfirmationEmailAsync(user, code);    
-            ct.ThrowIfCancellationRequested();
+           
             return RequestResult<bool>.Success(true);
         }
         public async Task<RequestResult<bool>> SendResetPasswordAsync(string email , CancellationToken ct)
         {
-            ct.ThrowIfCancellationRequested();
+           
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
                return RequestResult<bool>.Failure(ErrorCode.UserNotFound);  
             if (!user.EmailConfirmed)
                 return RequestResult<bool>.Failure(ErrorCode.EmailAlreadyConfirmed);
-            ct.ThrowIfCancellationRequested();
+           
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user!);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));  // Encode the code to make it into URL 
             if (code is null)
                 return RequestResult<bool>.Failure(ErrorCode.InternalServerError);  
-            ct.ThrowIfCancellationRequested();
+           
 
             // Send confirmation email    
             await SendResetPasswordEmailAsync(user!, code);
-            ct.ThrowIfCancellationRequested();
+           
             return RequestResult<bool>.Success(true);
         }
         public async Task<RequestResult<bool>> ResetPasswordAsync(string email, string code, string newPassword , CancellationToken ct)
         {
-            ct.ThrowIfCancellationRequested();
+           
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
                return RequestResult<bool>.Failure(ErrorCode.UserNotFound);
@@ -210,11 +201,11 @@ namespace EventHub.Infrastructure.Auth
                 return RequestResult<bool>.Failure(ErrorCode.EmailNotConfirmed);
 
             var decode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code)); // Decode the code from URL
-            ct.ThrowIfCancellationRequested();
+           
             var result = await _userManager.ResetPasswordAsync(user, decode, newPassword);
             if (!result.Succeeded)
                 return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
-            ct.ThrowIfCancellationRequested();
+           
             return RequestResult<bool>.Success(true);
         }
         private static string GenerateRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));

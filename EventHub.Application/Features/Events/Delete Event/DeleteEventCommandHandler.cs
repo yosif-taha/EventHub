@@ -5,17 +5,19 @@ using MediatR;
 
 namespace EventHub.Application.Features.Events.Delete_Event
 {
-    public class DeleteEventCommandHandler(IGenericRepository<Event> _repository) : IRequestHandler<DeleteEventCommand, RequestResult<Unit>>
+    public class DeleteEventCommandHandler(IGenericRepository<Event> _repository, IUnitOfWork _unitOfWork) : IRequestHandler<DeleteEventCommand, RequestResult<Unit>>
     {
         public async Task<RequestResult<Unit>> Handle(DeleteEventCommand request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var existingEvent = await _repository.GetByIdAsync(request.Id,cancellationToken);
-            if (existingEvent == null)
-                return RequestResult<Unit>.Failure(ErrorCode.EventNotFound);           
+            return await _unitOfWork.ExecuteAsync(async () =>
+            {
+                bool existingEvent = await _repository.AnyAsync(x => x.Id == request.Id, cancellationToken);
+                if (!existingEvent)
+                    return RequestResult<Unit>.Failure(ErrorCode.EventNotFound);
 
-            await _repository.SoftDeleteAsync(request.Id,cancellationToken);
-            return RequestResult<Unit>.Success(Unit.Value);
+                _repository.SoftDelete(new Event { Id = request.Id });
+                return RequestResult<Unit>.Success(Unit.Value);
+            }, cancellationToken);
         }
     }
 }

@@ -8,7 +8,6 @@ namespace EventHub.Application.Features.Account.UpdateUserProfile
     {
         public async Task<RequestResult<bool>> Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var data = await _accountService.UpdateUserProfileAsync(request.UserId, request.FullName, cancellationToken);
              if(!data.IsSuccess)
                 return RequestResult<bool>.Failure(data.ErrorCode);

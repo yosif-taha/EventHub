@@ -13,7 +13,6 @@ namespace EventHub.Application.Features.Events.Check_Event_Availability
     {
         public async Task<RequestResult<EventAvailabilityDto>> Handle(CheckEventAvailabilityQuery request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var eventAvailabilityDto = await _repository.GetByIdProjectedAsync<EventAvailabilityDto>(
                 e => e.Id == request.Id,
                 _mapper.ConfigurationProvider, cancellationToken);

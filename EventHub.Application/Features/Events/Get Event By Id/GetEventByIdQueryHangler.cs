@@ -11,7 +11,6 @@ namespace EventHub.Application.Features.Events.Get_Event_By_Id
     {
         public async Task<RequestResult<EventDto>> Handle(GetEventByIdQuery request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var eventDto = await _repository.GetByIdProjectedAsync<EventDto>(
                 e => e.Id == request.Id,
                 _mapper.ConfigurationProvider, cancellationToken);

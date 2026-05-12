@@ -5,22 +5,37 @@ using MediatR;
 
 namespace EventHub.Application.Features.Events.Update_Event
 {
-    public class UpdateEventCommandHandler(IGenericRepository<Event> _repository, IUserContext _userContext) : IRequestHandler<UpdateEventCommand, RequestResult<Unit>>
+    public class UpdateEventCommandHandler(IGenericRepository<Event> _repository, IUserContext _userContext, IUnitOfWork _unitOfWork) : IRequestHandler<UpdateEventCommand, RequestResult<Unit>>
     {
         public async Task<RequestResult<Unit>> Handle(UpdateEventCommand request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            await _repository.UpdateAsync(
-            e => e.Id == request.Id && e.OrganizerId == _userContext.UserId,
-            s => s.SetProperty(e => e.Title, request.Title)
-                  .SetProperty(e => e.Description, request.Description)
-                  .SetProperty(e => e.EventDate, request.EventDate)
-                  .SetProperty(e => e.Location, request.Location)
-                  .SetProperty(e => e.CategoryId, request.CategoryId)
-                  .SetProperty(e => e.MaxAttendees, request.MaxAttendees), cancellationToken);
+            return await _unitOfWork.ExecuteAsync(async () =>
+            {
+                var newevent = new Event { Id = request.Id };
+                List<string> propertiesToUpdate = new List<string>();
+                newevent.UpdatedAt = DateTime.UtcNow;
+                propertiesToUpdate.Add(nameof(newevent.UpdatedAt));
 
+                var eventProperties = typeof(Event).GetProperties().ToDictionary(p => p.Name);
 
-            return RequestResult<Unit>.Success(Unit.Value);
+                foreach (var prop in typeof(UpdateEventCommand).GetProperties())
+                {
+                    var value = prop.GetValue(request);
+                    if (value == null)
+                        continue;
+
+                    if (!eventProperties.TryGetValue(prop.Name, out var entityProp))
+                        continue;
+
+                    entityProp.SetValue(newevent, value);
+                    if (entityProp.Name != "Id")
+                        propertiesToUpdate.Add(entityProp.Name);
+                }
+
+                _repository.SaveInclude(newevent, propertiesToUpdate.ToArray());
+
+                return RequestResult<Unit>.Success(Unit.Value);
+            }, cancellationToken);
         }
     }
 }

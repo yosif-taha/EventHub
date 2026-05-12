@@ -9,7 +9,6 @@ namespace EventHub.Application.Features.Auth.Login
     {
         public async Task<RequestResult<AuthResponse>> Handle(LoginQuery request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var result = await _authService.LoginAsync(request.Email, request.Password, cancellationToken);
             if (!result.IsSuccess)
                 return RequestResult<AuthResponse>.Failure(result.ErrorCode);

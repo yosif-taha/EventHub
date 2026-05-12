@@ -46,7 +46,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
-        public async Task<ResponseViewModel> UpdateCategoryt([FromBody] UpdateCategoryRequest request, CancellationToken ct)
+        public async Task<ResponseViewModel> UpdateCategory([FromBody] UpdateCategoryRequest request, CancellationToken ct)
         {
             var result = await _mediator.Send(new UpdateCategoryCommand(request.Id,request.Name), ct);
             if (!result.IsSuccess)

@@ -15,7 +15,6 @@ namespace EventHub.Application.Features.Events.GetAll_Events
     {
         public async Task<RequestResult<PaginatedList<EventDto>>> Handle(GetAllEventsQuery request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var query = _repository.GetAll();
 
             if (request.CategoryId.HasValue)

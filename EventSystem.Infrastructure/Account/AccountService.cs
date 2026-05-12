@@ -31,10 +31,9 @@ namespace EventHub.Infrastructure.Account
         }
         public async Task<RequestResult<bool>> ChangePasswordAsync(string userId, string currentPassword, string newPassword , CancellationToken ct) 
         {
-            ct.ThrowIfCancellationRequested();
+            
             var user = await _userManager.FindByIdAsync(userId);
             var result = await _userManager.ChangePasswordAsync(user!, currentPassword, newPassword);
-            ct.ThrowIfCancellationRequested();
             if (!result.Succeeded)
                  return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
             return RequestResult<bool>.Success(result.Succeeded);   

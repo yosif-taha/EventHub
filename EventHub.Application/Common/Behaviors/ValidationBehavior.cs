@@ -1,11 +1,7 @@
 ﻿using EventHub.Application.Common.Responses;
 using FluentValidation;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace EventHub.Application.Common.Behaviors
 {
@@ -23,12 +19,29 @@ namespace EventHub.Application.Common.Behaviors
 
             if (failures.Count != 0)
             {
-                var message = failures.FirstOrDefault()?.ErrorMessage;
+                var errorMessage = failures.FirstOrDefault()?.ErrorMessage;
 
-                return (TResponse)typeof(TResponse)
-                    .GetMethod("Failure")!
-                    .Invoke(null, [ErrorCode.ValidationError, message])!;
+                // الحصول على نوع الـ T من RequestResult<T>
+                var resultType = typeof(TResponse).GetGenericArguments()[0];
+                var genericResultType = typeof(RequestResult<>).MakeGenericType(resultType);
+
+                // البحث عن ميثود Failure التي تأخذ (ErrorCode, string)
+                var failureMethod = genericResultType.GetMethod("Failure",
+                    BindingFlags.Public | BindingFlags.Static,
+                    null,
+                    new[] { typeof(ErrorCode), typeof(string) },
+                    null);
+
+                if (failureMethod != null)
+                {
+                    // استدعاء الميثود بالبارامترين المطلوبين
+                    var result = failureMethod.Invoke(null, new object[] { ErrorCode.ValidationError, errorMessage! });
+                    return (TResponse)result!;
+                }
+
+                throw new InvalidOperationException($"Architecture Error: 'Failure' method with message not found in {genericResultType.Name}");
             }
+
             return await next();
         }
     }
