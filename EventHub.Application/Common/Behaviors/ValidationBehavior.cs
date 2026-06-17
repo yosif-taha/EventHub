@@ -21,11 +21,9 @@ namespace EventHub.Application.Common.Behaviors
             {
                 var errorMessage = failures.FirstOrDefault()?.ErrorMessage;
 
-                // الحصول على نوع الـ T من RequestResult<T>
                 var resultType = typeof(TResponse).GetGenericArguments()[0];
                 var genericResultType = typeof(RequestResult<>).MakeGenericType(resultType);
 
-                // البحث عن ميثود Failure التي تأخذ (ErrorCode, string)
                 var failureMethod = genericResultType.GetMethod("Failure",
                     BindingFlags.Public | BindingFlags.Static,
                     null,
@@ -34,7 +32,6 @@ namespace EventHub.Application.Common.Behaviors
 
                 if (failureMethod != null)
                 {
-                    // استدعاء الميثود بالبارامترين المطلوبين
                     var result = failureMethod.Invoke(null, new object[] { ErrorCode.ValidationError, errorMessage! });
                     return (TResponse)result!;
                 }

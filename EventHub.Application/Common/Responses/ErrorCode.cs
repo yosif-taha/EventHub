@@ -80,6 +80,12 @@ namespace EventHub.Application.Common.Responses
         [Description("An event with this title already exists.")]
         EventTitleAlreadyExists = 305,
 
+        [Description("An event with this title Is Full .")]
+        EventIsFull = 306,
+
+        [Description("High booking volume is currently unavailable, please try again.")]
+        ConcurrencyConflict = 307,
+
         // --- Registration ---
         [Description("Event registration not found.")]
         RegistrationNotFound = 400,
@@ -95,6 +101,9 @@ namespace EventHub.Application.Common.Responses
 
         [Description("The promo code entered is invalid or expired.")]
         InvalidPromoCode = 404,
+
+        [Description("This registration is already canceled.")]
+        RegistrationAlreadyCanceled = 405,
 
         // --- Payments ---
         [Description("Payment processing failed. Please try again.")]

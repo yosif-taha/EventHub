@@ -16,17 +16,11 @@ namespace EventHub.Persistence.Data.Configurations
                    .IsRequired();
 
             builder.Property(pt => pt.Status).HasConversion<string>();
-            builder.Property(pt => pt.ExternalTransactionId).HasMaxLength(255);
 
 
-            builder.HasOne(pt => pt.User)
+            builder.HasOne(pt => pt.Registration)
                    .WithMany(u => u.PaymentTransactions)
-                   .HasForeignKey(pt => pt.UserId)
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(pt => pt.Event)
-                   .WithMany(e => e.PaymentTransactions)
-                   .HasForeignKey(pt => pt.EventId)
+                   .HasForeignKey(pt => pt.RegistrationId)
                    .OnDelete(DeleteBehavior.Restrict);
         }
     }

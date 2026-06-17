@@ -11,12 +11,11 @@ namespace EventHub.Domin.Models
     public class PaymentTransaction : BaseModel
     {
         public decimal Amount { get; set; }
-        public string ExternalTransactionId { get; set; } = string.Empty;
-        public DateTime TransactionDate { get; set; }
-        public PaymentTransactionStatus Status { get; set; }
-        public Guid UserId { get; set; } // Foreign key to ApplicationUser
-        public ApplicationUser User { get; set; } = null!; // Navigation property 
-        public Guid EventId { get; set; } // Foreign key to Event
-        public Event Event { get; set; } = null!; // Navigation property
+        public string Currency { get; set; } = "USD";
+        public PaymentTransactionStatus Status { get; set; } 
+        public string? StripePaymentIntentId { get; set; } 
+        public DateTime CreatedAt { get; set; }
+        public Guid RegistrationId { get; set; }
+        public Registration Registration { get; set; } = null!;
     }
 }

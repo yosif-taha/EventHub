@@ -15,14 +15,15 @@ namespace EventHub.Persistence.Data.Configurations
 
             builder.Property(r => r.Status).HasConversion<string>();
 
-            builder.HasOne(r => r.User)
-                   .WithMany(u => u.Registrations)
-                   .HasForeignKey(r => r.UserId)
-                   .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(r => r.Event)
                    .WithMany(e => e.Registrations)
                    .HasForeignKey(r => r.EventId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne<ApplicationUser>()
+                   .WithMany(u => u.Registrations)
+                   .HasForeignKey(r => r.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }
