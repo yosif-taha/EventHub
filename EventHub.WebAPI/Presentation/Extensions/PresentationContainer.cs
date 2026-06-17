@@ -30,6 +30,7 @@ namespace EventHub.WebAPI.Presentation.Extensions
             services.AddAutoMapper(m => m.AddProfile(new AccountViewModelProfile()));
             services.AddAutoMapper(m => m.AddProfile(new EventViewModelProfile()));
             services.AddAutoMapper(m => m.AddProfile(new CategoryViewModelProfile()));
+            services.AddAutoMapper(m => m.AddProfile(new RegistrationsViewModelProfile()));
 
             // Identity
             services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()

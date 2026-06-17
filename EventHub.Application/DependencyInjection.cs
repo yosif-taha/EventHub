@@ -1,6 +1,7 @@
 ﻿using EventHub.Application.Common.Behaviors;
 using EventHub.Application.Common.Mapping.Category;
 using EventHub.Application.Common.Mapping.Events;
+using EventHub.Application.Common.Mapping.Registrations;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -21,6 +22,7 @@ namespace EventHub.Application
             // AutoMapper
             services.AddAutoMapper(m => m.AddProfile(new EventProfile()));
             services.AddAutoMapper(m => m.AddProfile(new CategoryProfile()));
+            services.AddAutoMapper(m => m.AddProfile(new RegistrationProfile()));
 
             return services;
         }

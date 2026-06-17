@@ -9,7 +9,8 @@ using System.Linq.Dynamic.Core;
 
 namespace EventHub.Application.Features.Events.GetAll_Events
 {
-    public class GetAllEventsQueryHandler(IGenericRepository<Event> _repository,
+    public class GetAllEventsQueryHandler(
+        IGenericRepository<Event> _repository,
         IMapper _mapper,
         IDbExecutor _pagination) : IRequestHandler<GetAllEventsQuery, RequestResult<PaginatedList<EventDto>>>
     {

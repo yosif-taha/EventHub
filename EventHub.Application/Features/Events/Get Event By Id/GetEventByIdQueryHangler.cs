@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿ using AutoMapper;
 using EventHub.Application.Common.Dtos.Events;
 using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;

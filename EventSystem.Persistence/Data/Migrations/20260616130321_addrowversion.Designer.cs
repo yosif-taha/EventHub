@@ -4,6 +4,7 @@ using EventHub.Persistence.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventHub.Persistence.Data.Migrations
 {
     [DbContext(typeof(EventDbContext))]
-    partial class EventDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616130321_addrowversion")]
+    partial class addrowversion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,42 +248,38 @@ namespace EventHub.Persistence.Data.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid?>("ApplicationUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("EventId")
+                    b.Property<Guid>("EventId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExternalTransactionId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
-
-                    b.Property<Guid>("RegistrationId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("StripePaymentIntentId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.HasIndex("ApplicationUserId");
+                    b.HasKey("Id");
 
                     b.HasIndex("EventId");
 
-                    b.HasIndex("RegistrationId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("PaymentTransactions");
                 });
@@ -510,21 +509,21 @@ namespace EventHub.Persistence.Data.Migrations
 
             modelBuilder.Entity("EventHub.Domin.Models.PaymentTransaction", b =>
                 {
-                    b.HasOne("EventHub.Domin.Models.ApplicationUser", null)
+                    b.HasOne("EventHub.Domin.Models.Event", "Event")
                         .WithMany("PaymentTransactions")
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("EventHub.Domin.Models.Event", null)
-                        .WithMany("PaymentTransactions")
-                        .HasForeignKey("EventId");
-
-                    b.HasOne("EventHub.Domin.Models.Registration", "Registration")
-                        .WithMany("PaymentTransactions")
-                        .HasForeignKey("RegistrationId")
+                        .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Registration");
+                    b.HasOne("EventHub.Domin.Models.ApplicationUser", "User")
+                        .WithMany("PaymentTransactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EventHub.Domin.Models.Registration", b =>
@@ -535,13 +534,15 @@ namespace EventHub.Persistence.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EventHub.Domin.Models.ApplicationUser", null)
+                    b.HasOne("EventHub.Domin.Models.ApplicationUser", "User")
                         .WithMany("Registrations")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Event");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -609,11 +610,6 @@ namespace EventHub.Persistence.Data.Migrations
             modelBuilder.Entity("EventHub.Domin.Models.EventCategory", b =>
                 {
                     b.Navigation("Events");
-                });
-
-            modelBuilder.Entity("EventHub.Domin.Models.Registration", b =>
-                {
-                    b.Navigation("PaymentTransactions");
                 });
 #pragma warning restore 612, 618
         }

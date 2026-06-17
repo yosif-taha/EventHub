@@ -16,7 +16,7 @@ namespace EventHub.Persistence.Reposetories
 
         public IQueryable<T> GetAll() => _dbSet.AsQueryable();
 
-        public async Task<T?> GetByIdAsync(Guid id, CancellationToken ct) => await _dbSet.FirstOrDefaultAsync(t => t.Id == id, ct);
+        public async Task<T?> GetByIdAsync(Guid id, CancellationToken ct) => await _dbSet.AsTracking().FirstOrDefaultAsync(t => t.Id == id, ct);
         public async Task<TResult?> GetByIdProjectedAsync<TResult>(Expression<Func<T, bool>> predicate, IConfigurationProvider configuration, CancellationToken cancellationToken)
         {
             return await _dbSet
