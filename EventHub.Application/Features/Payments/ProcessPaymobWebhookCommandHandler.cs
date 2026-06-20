@@ -25,7 +25,7 @@ namespace EventHub.Application.Features.Payments
                     string paymobTransactionId = transactionData.Id.ToString();
                     bool isSuccess = transactionData.Success;
 
-                    var query = _transactionRepository.GetAll();
+                    var query = _transactionRepository.GetAllAsTracking();
                     var transaction = await _executor.FirstOrDefaultAsync(query, x => x.PaymobOrderId == paymobOrderId,cancellationToken);
 
                     if (transaction == null)

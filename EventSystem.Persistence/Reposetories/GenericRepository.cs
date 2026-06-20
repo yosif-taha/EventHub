@@ -15,6 +15,7 @@ namespace EventHub.Persistence.Reposetories
         private readonly DbSet<T> _dbSet = context.Set<T>();
 
         public IQueryable<T> GetAll() => _dbSet.AsQueryable();
+        public IQueryable<T> GetAllAsTracking() => _dbSet.AsQueryable().AsTracking();
 
         public async Task<T?> GetByIdAsync(Guid id, CancellationToken ct) => await _dbSet.FirstOrDefaultAsync(t => t.Id == id, ct);
         public async Task<T?> GetByIdAsTrackingAsync(Guid id, CancellationToken ct) => await _dbSet.AsTracking().FirstOrDefaultAsync(t => t.Id == id, ct);
