@@ -59,7 +59,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         [HttpPost]
         public async Task<ResponseViewModel> CreateEvent([FromBody] CreateEventRequest request, CancellationToken ct)
         {
-            var result = await _mediator.Send(new CreateEventCommand(request.Title, request.Description, request.EventDate, request.Location, request.CategoryId, request.MaxAttendees), ct);
+            var result = await _mediator.Send(new CreateEventCommand(request.Title, request.Description, request.EventDate,request.Price, request.Location, request.CategoryId, request.MaxAttendees), ct);
             if (!result.IsSuccess)
                 return new FailedResponseViewModel(result.ErrorCode, result.Message!);
             return new SuccessResponseViewModelT<Guid>(result.Data, "Event Created Successfuly");

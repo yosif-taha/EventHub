@@ -23,7 +23,8 @@ namespace EventHub.WebAPI.Presentation.Controllers
             var result = await _mediator.Send(new RegisterationCommand(eventId), ct);
             if (!result.IsSuccess)
                 return new FailedResponseViewModel(result.ErrorCode, result.ErrorCode.GetDescription());
-            return new SuccessResponseViewModel("Register To Event Is Done");
+            var data = _mapper.Map<RegistrationResultViewModel>(result.Data);
+            return new SuccessResponseViewModelT<RegistrationResultViewModel>(data);
         }
 
         [HttpPost("{registrationId}")]

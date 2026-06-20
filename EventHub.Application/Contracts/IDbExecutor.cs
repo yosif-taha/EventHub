@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EventHub.Application.Common.Models;
+using System.Linq.Expressions;
 
 namespace EventHub.Application.Contracts
 {
@@ -13,6 +14,7 @@ namespace EventHub.Application.Contracts
           IConfigurationProvider configuration, 
           CancellationToken ct = default);
         Task<List<TResult>> ToListAsync<TResult>(IQueryable<TResult> query, CancellationToken ct = default);
+        Task<TResult> FirstOrDefaultAsync<TResult>(IQueryable<TResult> query, Expression<Func<TResult, bool>> expression, CancellationToken ct = default);
     }
 
 }

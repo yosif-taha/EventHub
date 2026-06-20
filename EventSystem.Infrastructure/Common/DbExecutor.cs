@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using EventHub.Application.Common.Models;
 using EventHub.Application.Contracts;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 
 namespace EventHub.Infrastructure.Common
@@ -25,6 +26,10 @@ namespace EventHub.Infrastructure.Common
         public async Task<List<TResult>> ToListAsync<TResult>(IQueryable<TResult> query, CancellationToken ct = default)
         {
             return await query.ToListAsync(ct); 
+        }
+        public async Task<TResult> FirstOrDefaultAsync<TResult>(IQueryable<TResult> query, Expression<Func<TResult, bool>> expression, CancellationToken ct = default)
+        {
+            return await query.FirstOrDefaultAsync(expression,ct);
         }
     }
 }
