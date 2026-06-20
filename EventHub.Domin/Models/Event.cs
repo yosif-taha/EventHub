@@ -12,7 +12,7 @@ namespace EventHub.Domin.Models
         public DateTime EventDate { get; set; } 
         public int MaxAttendees { get; set; }
         public EventStatus Status { get; set; }
-        public bool PaymentRequired { get; set; }
+        public decimal Price { get; set; } 
         public int CurrentAttendeesCount { get; set; }
         public int RemainingSlots { get; set; }
         public bool IsAvailable { get; set; } = true;

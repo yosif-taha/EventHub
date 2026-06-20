@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using EventHub.Domin.Common;
-using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
 namespace EventHub.Application.Contracts
@@ -9,6 +8,7 @@ namespace EventHub.Application.Contracts
     {
         IQueryable<T> GetAll();
         Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+        Task<T?> GetByIdAsTrackingAsync(Guid id, CancellationToken cancellationToken);
         Task<TResult?> GetByIdProjectedAsync<TResult>(Expression<Func<T, bool>> predicate, IConfigurationProvider configuration, CancellationToken cancellationToken);
         Task AddAsync(T entity, CancellationToken cancellationToken);
         void SaveInclude(T entity, params string[] includeProperties);

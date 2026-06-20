@@ -7,6 +7,7 @@ namespace EventHub.Application.Features.Events.Create_Event
     string Title,
     string Description,
     DateTime EventDate,
+    double Price,   
     string Location,
     Guid CategoryId,
     int MaxAttendees) : IRequest<RequestResult<Guid>>;

@@ -4,6 +4,7 @@
     string Title,
     string Description,
     DateTime EventDate,
+    double Price,
     string Location,
     Guid CategoryId,
     int MaxAttendees);

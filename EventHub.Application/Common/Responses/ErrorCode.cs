@@ -136,6 +136,13 @@ namespace EventHub.Application.Common.Responses
         InvalidOldPassword = 701,
 
         [Description("Failed to upload the image. Please try again.")]
-        ImageUploadFailed = 702
+        ImageUploadFailed = 702,
+
+        // Transactions
+        [Description("The specified Transaction was not found.")]
+        TransactionNotFound = 800,
+
+        [Description("A Transaction already processed.")]
+        TransactionAlreadyProcessed = 801
     }
 }

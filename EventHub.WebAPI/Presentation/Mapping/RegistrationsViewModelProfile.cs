@@ -9,6 +9,7 @@ namespace EventHub.WebAPI.Presentation.Mapping
         public RegistrationsViewModelProfile()
         {
             CreateMap<UserRegistrationDto, GetUserRegistrationsViewModel>();
+            CreateMap<RegistrationResultDto, RegistrationResultViewModel>();
         }
     }
 }

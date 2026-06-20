@@ -20,7 +20,7 @@ namespace EventHub.Application.Features.Registerations.CancelRegistrationForEven
             {
                 return await _unitOfWork.ExecuteAsync(async () =>
                 {
-                    var registration = await _registrationRepository.GetByIdAsync(request.RegistrationId, cancellationToken);
+                    var registration = await _registrationRepository.GetByIdAsTrackingAsync(request.RegistrationId, cancellationToken);
                     if (registration == null)
                         return RequestResult<bool>.Failure(ErrorCode.RegistrationNotFound, "Registration not found.");
 
@@ -30,7 +30,7 @@ namespace EventHub.Application.Features.Registerations.CancelRegistrationForEven
                     if (registration.Status == RegistrationStatus.Canceled)
                         return RequestResult<bool>.Failure(ErrorCode.RegistrationAlreadyCanceled, "This registration is already canceled.");
 
-                    var @event = await _eventRepository.GetByIdAsync(registration.EventId, cancellationToken);
+                    var @event = await _eventRepository.GetByIdAsTrackingAsync(registration.EventId, cancellationToken);
                     if (@event != null)
                     {
                         @event.DecrementAttendees();

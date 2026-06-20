@@ -15,6 +15,7 @@ namespace EventHub.Persistence.Data.Configurations
             builder.Property(e => e.Description).HasMaxLength(2000);
             builder.Property(e => e.Location).HasMaxLength(500).IsRequired();
             builder.Property(e => e.IsAvailable).HasDefaultValue(true);
+            builder.Property(e => e.Price).HasDefaultValue(0);
 
            
             builder.Property(e => e.Status)
