@@ -2,6 +2,7 @@
 using EventHub.Application.Contracts;
 using EventHub.Domin.Enums;
 using EventHub.Domin.Models;
+using EventHub.Domin.Constants;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,9 @@ namespace EventHub.Application.Features.Registerations.CancelRegistrationForEven
     {
         public async Task<RequestResult<bool>> Handle(CancelRegistrationCommand request, CancellationToken cancellationToken)
         {
+            if (!_userContext.IsInRole(RoleNames.Attendee))
+                return RequestResult<bool>.Failure(ErrorCode.Forbidden);
+
             try
             {
                 return await _unitOfWork.ExecuteAsync(async () =>

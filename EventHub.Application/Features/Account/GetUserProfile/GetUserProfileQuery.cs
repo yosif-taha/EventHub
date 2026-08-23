@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 
 namespace EventHub.Application.Features.Account.GetUserProfile
 {
-    public record GetUserProfileQuery(
-        string UserId
-        ) : IRequest<RequestResult<UserProfileResponse>>;
+    public record GetUserProfileQuery : IRequest<RequestResult<UserProfileResponse>>;
 
 }

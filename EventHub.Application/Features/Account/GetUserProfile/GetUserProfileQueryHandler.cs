@@ -5,11 +5,11 @@ using MediatR;
 
 namespace EventHub.Application.Features.Account.GetUserProfile
 {
-    public class GetUserProfileQueryHandler(IAccountService _accountService) : IRequestHandler<GetUserProfileQuery, RequestResult<UserProfileResponse>>
+    public class GetUserProfileQueryHandler(IAccountService _accountService, IUserContext _userContext) : IRequestHandler<GetUserProfileQuery, RequestResult<UserProfileResponse>>
     {
         public async Task<RequestResult<UserProfileResponse>> Handle(GetUserProfileQuery request, CancellationToken cancellationToken)
         {
-            var data = await  _accountService.GetUserProfileAsync(request.UserId, cancellationToken);
+            var data = await  _accountService.GetUserProfileAsync(_userContext.UserId.ToString(), cancellationToken);
             if (!data.IsSuccess)
                 return RequestResult<UserProfileResponse>.Failure(data.ErrorCode);
             return RequestResult<UserProfileResponse>.Success(data.Data!);

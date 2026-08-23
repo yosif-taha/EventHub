@@ -3,13 +3,15 @@ using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;
 using EventHub.Application.Features.Common.Queries.CheckCategoryExists;
 using EventHub.Domin.Models;
+using EventHub.Domin.Constants;
 using MediatR;
 
 namespace EventHub.Application.Features.Events.Create_Event
 {
     public class CreateEventCommandHandler(
         IGenericRepository<Event> _repository,
-        IMapper _mapper, IUserContext _userContext,
+        IMapper _mapper, 
+        IUserContext _userContext,
         IMediator _mediator,
         IUnitOfWork _unitOfWork
         )
@@ -18,6 +20,10 @@ namespace EventHub.Application.Features.Events.Create_Event
 
         public async Task<RequestResult<Guid>> Handle(CreateEventCommand request, CancellationToken cancellationToken)
         {
+            if (!_userContext.IsInRole(RoleNames.Admin) &&
+                !_userContext.IsInRole(RoleNames.Organizer))
+                return RequestResult<Guid>.Failure(ErrorCode.Forbidden);
+
             return await _unitOfWork.ExecuteAsync(async () =>
             {
                  var categoryExists = await _mediator.Send(new CheckCategoryExistsQuery(request.CategoryId), cancellationToken);

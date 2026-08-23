@@ -1,6 +1,7 @@
 ﻿using EventHub.Application.Common.Dtos.Auth;
 using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;
+using EventHub.Domin.Constants;
 using EventHub.Domin.Enums;
 using EventHub.Domin.Models;
 using Microsoft.AspNetCore.Http;
@@ -28,6 +29,8 @@ namespace EventHub.Infrastructure.Auth
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
             if (!isPasswordValid)
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.InvalidCredentials);
+            if (!user.EmailConfirmed)
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.EmailNotConfirmed);
             try
             {
                 // Generate Token
@@ -53,7 +56,7 @@ namespace EventHub.Infrastructure.Auth
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.InternalServerError);
             }
         }
-        public async Task<RequestResult<Guid>> RegisterAsync(string email, string password, string fullName, UserRole role, CancellationToken ct)
+        public async Task<RequestResult<Guid>> RegisterAsync(string email, string password, string fullName, CancellationToken ct)
         {
             bool emailIsAlreadyUsed = await _userManager.Users.AnyAsync(u => u.Email == email, ct);
             if (emailIsAlreadyUsed)
@@ -64,12 +67,19 @@ namespace EventHub.Infrastructure.Auth
                 Email = email,
                 UserName = email,
                 FullName = fullName,
-                Role = role
+                Role = UserRole.Attendee
             };
 
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
+                var roleResult = await _userManager.AddToRoleAsync(user, RoleNames.Attendee);
+                if (!roleResult.Succeeded)
+                {
+                    await _userManager.DeleteAsync(user);
+                    return RequestResult<Guid>.Failure(ErrorCode.RoleNotFound);
+                }
+
                 // Generate Code
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));  // Encode the code to make it into URL 
@@ -92,6 +102,8 @@ namespace EventHub.Infrastructure.Auth
             var user = await _userManager.FindByIdAsync(userId);
             if (user is null)
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.UserNotFound);
+            if (!user.EmailConfirmed)
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.EmailNotConfirmed);
 
              
             var storedRefreshToken = user.RefreshTokens.FirstOrDefault(rt => rt.Token == refreshToken && rt.IsActive);
@@ -177,7 +189,7 @@ namespace EventHub.Infrastructure.Auth
             if (user is null)
                return RequestResult<bool>.Failure(ErrorCode.UserNotFound);  
             if (!user.EmailConfirmed)
-                return RequestResult<bool>.Failure(ErrorCode.EmailAlreadyConfirmed);
+                return RequestResult<bool>.Failure(ErrorCode.EmailNotConfirmed);
            
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user!);
@@ -212,13 +224,13 @@ namespace EventHub.Infrastructure.Auth
         private async Task SendConfirmationEmailAsync(ApplicationUser user, string code)
         {
             var origin = _httpContext.HttpContext?.Request.Headers.Origin;
-            var emailBodey = $"{origin}/auth/emailConfirmation/?userId{user.Id}&code{code}";
+            var emailBodey = $"{origin}/auth/emailConfirmation/?userId={user.Id}&code={code}";
             await _emailService.SendEmailAsync(user.Email!, "Confirm your email", emailBodey);
         }
         private async Task SendResetPasswordEmailAsync(ApplicationUser user, string code)
         {
             var origin = _httpContext.HttpContext?.Request.Headers.Origin;
-            var emailBodey = $"{origin}/auth/ResetPassword/?email{user.Email}&code{code}";
+            var emailBodey = $"{origin}/auth/ResetPassword/?email={user.Email}&code={code}";
             await _emailService.SendEmailAsync(user.Email!, "Reset Password", emailBodey);
         }
     }

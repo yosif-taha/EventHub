@@ -10,6 +10,7 @@ using EventHub.Application.Features.Events.Update_Event;
 using EventHub.WebAPI.Presentation.ViewModels.Events;
 using EventHub.WebAPI.Presentation.ViewModels.Request;
 using EventHub.WebAPI.Presentation.ViewModels.Respponse;
+using EventHub.Domin.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
     public class EventController(IMediator _mediator, IMapper _mapper) : ControllerBase
     {
         [HttpGet]
+        [Authorize(RoleNames.AllUsers)]
         public async Task<ResponseViewModel> GetAllEvents([FromQuery] RequestFilter request, Guid? categoryId, CancellationToken ct)
         {
             var result = await _mediator.Send(new GetAllEventsQuery(request.SearchValue, categoryId, request.SortColumn, request.SortDirection, request.PageNumber, request.PageSize), ct);
@@ -37,6 +39,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
        
         [HttpGet]
+        [Authorize(RoleNames.AllUsers)]
         public async Task<ResponseViewModel> GetEventById([FromQuery] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new GetEventByIdQuery(id), ct);
@@ -47,6 +50,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpGet]
+        [Authorize(RoleNames.AllUsers)]
         public async Task<ResponseViewModel> CheckEventAvailability([FromQuery] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new CheckEventAvailabilityQuery(id), ct);
@@ -57,6 +61,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
+        [Authorize(RoleNames.AdminOrOrganizer)]
         public async Task<ResponseViewModel> CreateEvent([FromBody] CreateEventRequest request, CancellationToken ct)
         {
             var result = await _mediator.Send(new CreateEventCommand(request.Title, request.Description, request.EventDate,request.Price, request.Location, request.CategoryId, request.MaxAttendees), ct);
@@ -66,6 +71,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
+        [Authorize(RoleNames.AdminOrOrganizer)]
         public async Task<ResponseViewModel> UpdateEvent([FromBody] UpdateEventRequest request, CancellationToken ct)
         {
             var result = await _mediator.Send(new UpdateEventCommand(request.Id, request.Title, request.Description, request.EventDate, request.Location, request.CategoryId, request.MaxAttendees), ct);
@@ -75,6 +81,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
+        [Authorize(RoleNames.Admin)]
         public async Task<ResponseViewModel> DeleteEvent([FromQuery] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new DeleteEventCommand(id),ct);

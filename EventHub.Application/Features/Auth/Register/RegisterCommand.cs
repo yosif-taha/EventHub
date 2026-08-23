@@ -1,5 +1,4 @@
 ﻿using EventHub.Application.Common.Responses;
-using EventHub.Domin.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -12,8 +11,7 @@ namespace EventHub.Application.Features.Auth.Register
     public record RegisterCommand(
         string Email,
         string Password,
-        string FullName,
-        UserRole Role = UserRole.Attend
+        string FullName
         ) : IRequest<RequestResult<Guid>>;
    
 }
