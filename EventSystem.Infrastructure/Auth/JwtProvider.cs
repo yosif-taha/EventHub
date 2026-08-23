@@ -39,7 +39,7 @@ namespace EventHub.Infrastructure.Auth
                 issuer: _options.Issuer,
                 audience: _options.Audience,
                 claims: authClaims,
-                expires: DateTime.UtcNow.AddHours(_options.ExpiresMinutes),
+                expires: DateTime.UtcNow.AddMinutes(_options.ExpiresMinutes),
                 signingCredentials: Credentials
             );
 
@@ -53,18 +53,21 @@ namespace EventHub.Infrastructure.Auth
 
             try
             {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
 
                     IssuerSigningKey = key,
                     ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = _options.Issuer,
+                    ValidAudience = _options.Audience,
                     ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
+                }, out _);
 
-                var jwtToken = (JwtSecurityToken)validatedToken;
-                return jwtToken.Claims.First(x => x.Type == JwtRegisteredClaimNames.Sub).Value;
+                return principal.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
             }
             catch
             {

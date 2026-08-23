@@ -12,7 +12,7 @@ namespace EventHub.Application.Contracts
     public interface IAuthService
     {
         Task<RequestResult<AuthResponse?>> LoginAsync(string email, string password, CancellationToken ct = default);
-        Task<RequestResult<Guid>> RegisterAsync(string email, string password, string fullName, UserRole role = UserRole.Attend, CancellationToken ct = default);
+        Task<RequestResult<Guid>> RegisterAsync(string email, string password, string fullName, CancellationToken ct = default);
         Task<RequestResult<AuthResponse?>> GenerateNewTokensAsync(string token, string refreshToken, CancellationToken ct = default);
         Task<RequestResult<bool>> ConfirmEmailAsync(string userId, string urlCode, CancellationToken ct = default);
         Task<RequestResult<bool>> ResendConfirmationEmailAsync(string email, CancellationToken ct = default);

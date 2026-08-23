@@ -7,7 +7,9 @@ using EventHub.Application.Features.Category.Get_Category_By_Id;
 using EventHub.Application.Features.Category.Update_Category;
 using EventHub.WebAPI.Presentation.ViewModels.Category;
 using EventHub.WebAPI.Presentation.ViewModels.Respponse;
+using EventHub.Domin.Constants;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventHub.WebAPI.Presentation.Controllers
@@ -17,6 +19,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
     public class CategoryController(IMediator _mediator, IMapper _mapper) : ControllerBase
     {
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ResponseViewModel> GetAllCategories(CancellationToken ct)
         {
             var result = await _mediator.Send(new GetAllCategoriesQuery(),ct);
@@ -27,6 +30,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ResponseViewModel> GetCategoryById([FromQuery] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new GetCategoryByIdQuery(id), ct);
@@ -37,6 +41,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
+        [Authorize(RoleNames.Admin)]
         public async Task<ResponseViewModel> CreateCategory([FromBody] CreateCategoryRequest request, CancellationToken ct)
         {
             var result = await _mediator.Send(new CreateCategoryCommand(request.Name),ct);
@@ -46,6 +51,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
+        [Authorize(RoleNames.Admin)]
         public async Task<ResponseViewModel> UpdateCategory([FromBody] UpdateCategoryRequest request, CancellationToken ct)
         {
             var result = await _mediator.Send(new UpdateCategoryCommand(request.Id,request.Name), ct);
@@ -55,6 +61,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
+        [Authorize(RoleNames.Admin)]
         public async Task<ResponseViewModel> DeleteCategory([FromQuery] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new DeleteCategoryCommand(id), ct);

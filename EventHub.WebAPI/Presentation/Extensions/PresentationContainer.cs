@@ -62,6 +62,8 @@ namespace EventHub.WebAPI.Presentation.Extensions
                     ValidIssuer = settings?.Issuer,
                     ValidAudience = settings?.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings?.Key!)),
+                    NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier,
+                    RoleClaimType = System.Security.Claims.ClaimTypes.Role,
                 };
             });
 

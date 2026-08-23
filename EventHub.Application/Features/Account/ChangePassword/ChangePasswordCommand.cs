@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace EventHub.Application.Features.Account.ChangePassword
 {
     public record ChangePasswordCommand(
-        string UserId,
         string CurrentPassword,
         string NewPassword
         ) : IRequest<RequestResult<bool>>;

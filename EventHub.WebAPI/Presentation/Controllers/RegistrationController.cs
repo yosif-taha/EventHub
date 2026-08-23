@@ -6,6 +6,7 @@ using EventHub.Application.Features.Registerations.GetUserRegistrations;
 using EventHub.Application.Features.Registerations.RegisterationForEvent;
 using EventHub.WebAPI.Presentation.ViewModels.Registrations;
 using EventHub.WebAPI.Presentation.ViewModels.Respponse;
+using EventHub.Domin.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
     public class RegistrationController(IMediator _mediator, IMapper _mapper) : ControllerBase
     {
         [HttpPost("{eventId}")]
+        [Authorize(RoleNames.Attendee)]
         public async Task<ResponseViewModel> RegisterForEvent(Guid eventId, CancellationToken ct)
         {
             var result = await _mediator.Send(new RegisterationCommand(eventId), ct);
@@ -28,6 +30,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost("{registrationId}")]
+        [Authorize(RoleNames.Attendee)]
         public async Task<ResponseViewModel> CancelRegisterForEvent(Guid registrationId, CancellationToken ct)
         {
             var result = await _mediator.Send(new CancelRegistrationCommand(registrationId), ct);
@@ -37,6 +40,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpGet]
+        [Authorize(RoleNames.Attendee)]
         public async Task<ResponseViewModel> GetRegistrations(CancellationToken ct)
         {
             var result = await _mediator.Send(new GetMyRegistrationsQuery(),ct);

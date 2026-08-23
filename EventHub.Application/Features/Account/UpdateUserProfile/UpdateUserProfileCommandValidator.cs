@@ -15,9 +15,6 @@ namespace EventHub.Application.Features.Account.UpdateUserProfile
                 .NotEmpty().WithMessage("Full name is required.")
                 .MaximumLength(100).WithMessage("Full name must not exceed 100 characters.");
 
-            RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("User ID is required.")
-                .MinimumLength(8).WithMessage("User ID must be at least 8 character long.");
         }
     }
 }

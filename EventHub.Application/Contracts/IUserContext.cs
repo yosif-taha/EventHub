@@ -11,5 +11,6 @@ namespace EventHub.Application.Contracts
         Guid UserId { get; }
         string? Email { get; }
         bool IsAuthenticated { get; }
+        bool IsInRole(string role);
     }
 }

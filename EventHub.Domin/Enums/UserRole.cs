@@ -10,6 +10,9 @@ namespace EventHub.Domin.Enums
     {
         Admin = 0,
         Organizer = 1,
-        Attend =2
+        Attendee = 2,
+
+        [Obsolete("Use Attendee.")]
+        Attend = Attendee
     }
 }

@@ -11,7 +11,7 @@ namespace EventHub.Domin.Models
         }
         public string FullName { get; set; } = string.Empty;
 
-        public UserRole Role { get; set; } = UserRole.Attend; // Default Role
+        public UserRole Role { get; set; } = UserRole.Attendee; // Primary Identity role for compatibility
         public List<Event> CreatedEvents { get; set; } = [];  // Navigation property for events created by the user
         public List<Registration> Registrations { get; set; } = [];// Navigation property for registrations of the user
         public List<PaymentTransaction> PaymentTransactions { get; set; } = []; // Navigation property for payment transactions of the user

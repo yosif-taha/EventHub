@@ -4,3 +4,9 @@ GET {{EventHub.WebAPI_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+GET {{EventHub.WebAPI_HostAddress}}/api/category/GetAllCategories/
+Accept: application/json
+
+###
+

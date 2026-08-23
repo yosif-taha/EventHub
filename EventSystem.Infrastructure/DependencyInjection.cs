@@ -19,6 +19,7 @@ namespace EventHub.Infrastructure
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IUserManagementService, UserManagementService>();
 
             // Email
             services.Configure<EmailSettings>(configuration.GetSection(nameof(EmailSettings)));

@@ -4,6 +4,7 @@ using EventHub.Application.Common.Models;
 using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;
 using EventHub.Domin.Models;
+using EventHub.Domin.Constants;
 using MediatR;
 
 namespace EventHub.Application.Features.Registerations.GetUserRegistrations
@@ -19,6 +20,9 @@ namespace EventHub.Application.Features.Registerations.GetUserRegistrations
             GetMyRegistrationsQuery request,
             CancellationToken cancellationToken)
         {
+            if (!_userContext.IsInRole(RoleNames.Attendee))
+                return RequestResult<PaginatedList<UserRegistrationDto>>.Failure(ErrorCode.Forbidden);
+
             try
             {
                 var query = _registrationRepository.GetAll();

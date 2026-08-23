@@ -13,7 +13,7 @@ namespace EventHub.Infrastructure.Account
         {
             var user = await _userManager.Users
                 .Where(u => u.Id.ToString() == userId)
-                .SingleAsync(ct);
+                .SingleOrDefaultAsync(ct);
             if (user == null)         
                 return RequestResult<UserProfileResponse>.Failure(ErrorCode.UserNotFound);
             return RequestResult<UserProfileResponse>.Success(new UserProfileResponse(user.Email!, user.UserName!, user.FullName));

@@ -11,6 +11,15 @@ namespace EventHub.Application.Features.Events.Update_Event
         {
             return await _unitOfWork.ExecuteAsync(async () =>
             {
+                var existingEvent = await _repository.GetByIdAsTrackingAsync(request.Id, cancellationToken);
+                if (existingEvent is null)
+                    return RequestResult<Unit>.Failure(ErrorCode.EventNotFound);
+
+                var isAdmin = _userContext.IsInRole(EventHub.Domin.Constants.RoleNames.Admin);
+                var isOrganizer = _userContext.IsInRole(EventHub.Domin.Constants.RoleNames.Organizer);
+                if (!isAdmin && (!isOrganizer || existingEvent.OrganizerId != _userContext.UserId))
+                    return RequestResult<Unit>.Failure(ErrorCode.Forbidden);
+
                 var newevent = new Event { Id = request.Id };
                 List<string> propertiesToUpdate = new List<string>();
                 newevent.UpdatedAt = DateTime.UtcNow;
