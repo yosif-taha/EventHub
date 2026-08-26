@@ -7,6 +7,7 @@ using EventHub.Application.Features.Events.Delete_Event;
 using EventHub.Application.Features.Events.Get_Event_By_Id;
 using EventHub.Application.Features.Events.GetAll_Events;
 using EventHub.Application.Features.Events.Update_Event;
+using EventHub.Application.Features.Events.Update_Event_Status;
 using EventHub.WebAPI.Presentation.ViewModels.Events;
 using EventHub.WebAPI.Presentation.ViewModels.Request;
 using EventHub.WebAPI.Presentation.ViewModels.Respponse;
@@ -23,7 +24,8 @@ namespace EventHub.WebAPI.Presentation.Controllers
     public class EventController(IMediator _mediator, IMapper _mapper) : ControllerBase
     {
         [HttpGet]
-        [Authorize(RoleNames.AllUsers)]
+        [HttpGet("/api/events")]
+        [Authorize(Roles = RoleNames.AllUsers)]
         public async Task<ResponseViewModel> GetAllEvents([FromQuery] RequestFilter request, Guid? categoryId, CancellationToken ct)
         {
             var result = await _mediator.Send(new GetAllEventsQuery(request.SearchValue, categoryId, request.SortColumn, request.SortDirection, request.PageNumber, request.PageSize), ct);
@@ -39,8 +41,9 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
        
         [HttpGet]
-        [Authorize(RoleNames.AllUsers)]
-        public async Task<ResponseViewModel> GetEventById([FromQuery] Guid id, CancellationToken ct)
+        [HttpGet("/api/events/{id:guid}")]
+        [Authorize(Roles = RoleNames.AllUsers)]
+        public async Task<ResponseViewModel> GetEventById(Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new GetEventByIdQuery(id), ct);
             if (!result.IsSuccess)
@@ -50,7 +53,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpGet]
-        [Authorize(RoleNames.AllUsers)]
+        [Authorize(Roles = RoleNames.AllUsers)]
         public async Task<ResponseViewModel> CheckEventAvailability([FromQuery] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new CheckEventAvailabilityQuery(id), ct);
@@ -61,28 +64,71 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
-        [Authorize(RoleNames.AdminOrOrganizer)]
+        [HttpPost("/api/events")]
+        [Authorize(Roles = RoleNames.AdminOrOrganizer)]
         public async Task<ResponseViewModel> CreateEvent([FromBody] CreateEventRequest request, CancellationToken ct)
         {
-            var result = await _mediator.Send(new CreateEventCommand(request.Title, request.Description, request.EventDate,request.Price, request.Location, request.CategoryId, request.MaxAttendees), ct);
+            var result = await _mediator.Send(new CreateEventCommand(
+                request.Title,
+                request.Description,
+                request.EventDate,
+                request.Price,
+                request.Location,
+                request.CategoryId,
+                request.MaxAttendees,
+                request.Mode,
+                request.OnlineMeetingUrl), ct);
             if (!result.IsSuccess)
                 return new FailedResponseViewModel(result.ErrorCode, result.Message!);
             return new SuccessResponseViewModelT<Guid>(result.Data, "Event Created Successfuly");
         }
 
         [HttpPost]
-        [Authorize(RoleNames.AdminOrOrganizer)]
+        [Authorize(Roles = RoleNames.AdminOrOrganizer)]
         public async Task<ResponseViewModel> UpdateEvent([FromBody] UpdateEventRequest request, CancellationToken ct)
         {
-            var result = await _mediator.Send(new UpdateEventCommand(request.Id, request.Title, request.Description, request.EventDate, request.Location, request.CategoryId, request.MaxAttendees), ct);
+            return await UpdateEventAsync(request, ct);
+        }
+
+        [HttpPut("/api/events/{id:guid}")]
+        [Authorize(Roles = RoleNames.AdminOrOrganizer)]
+        public async Task<ResponseViewModel> UpdateEventById(Guid id, [FromBody] UpdateEventRequest request, CancellationToken ct)
+        {
+            return await UpdateEventAsync(request with { Id = id }, ct);
+        }
+
+        [HttpPatch("/api/events/{id:guid}/status")]
+        [HttpPost("{id:guid}")]
+        [Authorize(Roles = RoleNames.AdminOrOrganizer)]
+        public async Task<ResponseViewModel> UpdateEventStatus(Guid id, [FromBody] UpdateEventStatusRequest request, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new UpdateEventStatusCommand(id, request.Status), ct);
             if (!result.IsSuccess)
-                return new FailedResponseViewModel(result.ErrorCode, result.Message!);
+                return new FailedResponseViewModel(result.ErrorCode, result.Message ?? result.ErrorCode.GetDescription());
+            return new SuccessResponseViewModel("Event status updated successfully.");
+        }
+
+        private async Task<ResponseViewModel> UpdateEventAsync(UpdateEventRequest request, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new UpdateEventCommand(
+                request.Id,
+                request.Title,
+                request.Description,
+                request.EventDate,
+                request.Location,
+                request.CategoryId,
+                request.MaxAttendees,
+                request.Mode,
+                request.OnlineMeetingUrl), ct);
+            if (!result.IsSuccess)
+                return new FailedResponseViewModel(result.ErrorCode, result.Message ?? result.ErrorCode.GetDescription());
             return new SuccessResponseViewModelT<Unit>(result.Data, "Event Updated Successfuly");
         }
 
         [HttpPost]
-        [Authorize(RoleNames.Admin)]
-        public async Task<ResponseViewModel> DeleteEvent([FromQuery] Guid id, CancellationToken ct)
+        [HttpDelete("/api/events/{id:guid}")]
+        [Authorize(Roles = RoleNames.Admin)]
+        public async Task<ResponseViewModel> DeleteEvent(Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new DeleteEventCommand(id),ct);
             if (!result.IsSuccess)

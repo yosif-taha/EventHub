@@ -34,6 +34,9 @@ namespace EventHub.Application.Features.Registerations.CancelRegistrationForEven
                     if (registration.Status == RegistrationStatus.Canceled)
                         return RequestResult<bool>.Failure(ErrorCode.RegistrationAlreadyCanceled, "This registration is already canceled.");
 
+                    if (registration.Status is not (RegistrationStatus.Pending or RegistrationStatus.Confirmed))
+                        return RequestResult<bool>.Failure(ErrorCode.RegistrationClosed);
+
                     var @event = await _eventRepository.GetByIdAsTrackingAsync(registration.EventId, cancellationToken);
                     if (@event != null)
                     {

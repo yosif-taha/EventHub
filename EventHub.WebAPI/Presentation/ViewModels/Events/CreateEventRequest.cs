@@ -7,6 +7,8 @@
     double Price,
     string Location,
     Guid CategoryId,
-    int MaxAttendees);
+    int MaxAttendees,
+    EventHub.Domin.Enums.EventMode Mode,
+    string? OnlineMeetingUrl);
 
 }

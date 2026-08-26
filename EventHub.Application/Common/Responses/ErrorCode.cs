@@ -86,6 +86,9 @@ namespace EventHub.Application.Common.Responses
         [Description("High booking volume is currently unavailable, please try again.")]
         ConcurrencyConflict = 307,
 
+        [Description("The requested event status transition is not allowed.")]
+        EventInvalidStatusTransition = 308,
+
         // --- Registration ---
         [Description("Event registration not found.")]
         RegistrationNotFound = 400,

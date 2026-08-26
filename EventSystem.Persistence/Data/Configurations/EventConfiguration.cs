@@ -16,6 +16,11 @@ namespace EventHub.Persistence.Data.Configurations
             builder.Property(e => e.Location).HasMaxLength(500).IsRequired();
             builder.Property(e => e.IsAvailable).HasDefaultValue(true);
             builder.Property(e => e.Price).HasDefaultValue(0);
+            builder.Property(e => e.Mode)
+                   .HasConversion<string>()
+                   .HasMaxLength(20)
+                   .HasDefaultValue(EventHub.Domin.Enums.EventMode.Offline);
+            builder.Property(e => e.OnlineMeetingUrl).HasMaxLength(1000);
 
            
             builder.Property(e => e.Status)

@@ -12,6 +12,8 @@ namespace EventHub.Domin.Models
         public DateTime EventDate { get; set; } 
         public int MaxAttendees { get; set; }
         public EventStatus Status { get; set; }
+        public EventMode Mode { get; set; } = EventMode.Offline;
+        public string? OnlineMeetingUrl { get; set; }
         public decimal Price { get; set; } 
         public int CurrentAttendeesCount { get; set; }
         public int RemainingSlots { get; set; }
@@ -35,6 +37,21 @@ namespace EventHub.Domin.Models
             CurrentAttendeesCount++;
             return true;
         }
+
+        public bool IsOpenForRegistration(DateTime utcNow) =>
+            Status == EventStatus.Scheduled &&
+            EventDate > utcNow &&
+            CurrentAttendeesCount < MaxAttendees;
+
+        public bool CanTransitionTo(EventStatus targetStatus) =>
+            Status == EventStatus.Scheduled &&
+            targetStatus is EventStatus.Completed or EventStatus.Canceled;
+
+        public void TransitionTo(EventStatus targetStatus)
+        {
+            Status = targetStatus;
+        }
+
         public void DecrementAttendees()
         {
             if (CurrentAttendeesCount > 0)

@@ -41,7 +41,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
-        [Authorize(RoleNames.Admin)]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ResponseViewModel> CreateCategory([FromBody] CreateCategoryRequest request, CancellationToken ct)
         {
             var result = await _mediator.Send(new CreateCategoryCommand(request.Name),ct);
@@ -51,7 +51,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
-        [Authorize(RoleNames.Admin)]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ResponseViewModel> UpdateCategory([FromBody] UpdateCategoryRequest request, CancellationToken ct)
         {
             var result = await _mediator.Send(new UpdateCategoryCommand(request.Id,request.Name), ct);
@@ -61,7 +61,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpPost]
-        [Authorize(RoleNames.Admin)]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ResponseViewModel> DeleteCategory([FromQuery] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new DeleteCategoryCommand(id), ct);

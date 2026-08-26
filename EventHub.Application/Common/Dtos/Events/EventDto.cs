@@ -1,10 +1,4 @@
 ﻿using EventHub.Domin.Enums;
-using EventHub.Domin.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EventHub.Application.Common.Dtos.Events
 {
@@ -16,8 +10,13 @@ namespace EventHub.Application.Common.Dtos.Events
         public string Location { get; set; } = string.Empty;
         public DateTime EventDate { get; set; }
         public int MaxAttendees { get; set; }
+        public int CurrentAttendeesCount { get; set; }
+        public int RemainingSlots { get; set; }
         public string Status { get; set; } = string.Empty; 
         public bool PaymentRequired { get; set; }
+        public decimal Price { get; set; }
+        public EventMode Mode { get; set; }
+        public string? OnlineMeetingUrl { get; set; }
         public string CategoryName { get; set; } = string.Empty;
     }
 }

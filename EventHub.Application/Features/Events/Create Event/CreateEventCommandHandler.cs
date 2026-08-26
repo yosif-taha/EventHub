@@ -4,6 +4,7 @@ using EventHub.Application.Contracts;
 using EventHub.Application.Features.Common.Queries.CheckCategoryExists;
 using EventHub.Domin.Models;
 using EventHub.Domin.Constants;
+using EventHub.Domin.Enums;
 using MediatR;
 
 namespace EventHub.Application.Features.Events.Create_Event
@@ -32,6 +33,7 @@ namespace EventHub.Application.Features.Events.Create_Event
 
                  var newEvent = _mapper.Map<Event>(request);
                  newEvent.OrganizerId = _userContext.UserId;
+                 newEvent.Status = EventStatus.Scheduled;
                  newEvent.CreatedAt = DateTime.UtcNow;
 
                  await _repository.AddAsync(newEvent, cancellationToken);

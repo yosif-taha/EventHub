@@ -27,9 +27,23 @@ namespace EventHub.Application.Features.Registerations.RegisterationForEvent
             {
                 return await _unitOfWork.ExecuteAsync(async () =>
                 {
-                    var @event = await _eventRepository.GetByIdAsync(request.EventId, cancellationToken);
+                    var @event = await _eventRepository.GetByIdAsTrackingAsync(request.EventId, cancellationToken);
                     if (@event == null)
                         return RequestResult<RegistrationResultDto>.Failure(ErrorCode.EventNotFound, "Event Not Found");
+
+                    var alreadyRegistered = await _registrationRepository.AnyAsync(
+                        registration => registration.UserId == _userContext.UserId && registration.EventId == request.EventId,
+                        cancellationToken);
+                    if (alreadyRegistered)
+                        return RequestResult<RegistrationResultDto>.Failure(ErrorCode.AlreadyRegistered);
+
+                    if (!@event.IsOpenForRegistration(DateTime.UtcNow))
+                    {
+                        if (@event.CurrentAttendeesCount >= @event.MaxAttendees)
+                            return RequestResult<RegistrationResultDto>.Failure(ErrorCode.EventIsFull);
+
+                        return RequestResult<RegistrationResultDto>.Failure(ErrorCode.RegistrationClosed);
+                    }
 
                     if (!@event.TryIncrementAttendees())
                     {
@@ -38,6 +52,8 @@ namespace EventHub.Application.Features.Registerations.RegisterationForEvent
 
                     bool isPaidEvent = @event.Price > 0;
                     var initialStatus = isPaidEvent ? RegistrationStatus.Pending : RegistrationStatus.Confirmed;
+
+                    // Pending paid registrations reserve capacity until the existing payment workflow resolves them.
 
                     var registration = new Registration
                     {
