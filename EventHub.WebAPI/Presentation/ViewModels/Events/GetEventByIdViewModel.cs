@@ -8,8 +8,13 @@
         public string Location { get; set; } = string.Empty;
         public DateTime EventDate { get; set; }
         public int MaxAttendees { get; set; }
+        public int CurrentAttendeesCount { get; set; }
+        public int RemainingSlots { get; set; }
         public string Status { get; set; } = string.Empty;
         public bool PaymentRequired { get; set; }
+        public decimal Price { get; set; }
+        public EventHub.Domin.Enums.EventMode Mode { get; set; }
+        public string? OnlineMeetingUrl { get; set; }
         public string CategoryName { get; set; } = string.Empty;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using EventHub.Application.Common.Responses;
+using EventHub.Domin.Enums;
 using MediatR;
 
 namespace EventHub.Application.Features.Events.Update_Event
@@ -10,5 +11,7 @@ namespace EventHub.Application.Features.Events.Update_Event
       DateTime? EventDate,
       string? Location,
       Guid? CategoryId,
-      int? MaxAttendees) : IRequest<RequestResult<Unit>>;
+      int? MaxAttendees,
+      EventMode? Mode,
+      string? OnlineMeetingUrl) : IRequest<RequestResult<Unit>>;
 }

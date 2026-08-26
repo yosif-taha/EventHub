@@ -1,4 +1,6 @@
 ﻿using FluentValidation;
+using EventHub.Domin.Enums;
+
 
 namespace EventHub.Application.Features.Events.Update_Event
 {
@@ -30,6 +32,21 @@ namespace EventHub.Application.Features.Events.Update_Event
                 .GreaterThan(0)
                 .When(x => x.MaxAttendees.HasValue)
                 .WithMessage("Maximum attendees must be at least 1 person.");
+
+            RuleFor(x => x.Mode)
+                .IsInEnum()
+                .When(x => x.Mode.HasValue);
+
+            RuleFor(x => x.OnlineMeetingUrl)
+                .NotEmpty()
+                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
+                .When(x => x.Mode == EventMode.Online)
+                .WithMessage("An absolute online meeting URL is required for online events.");
+
+            RuleFor(x => x.OnlineMeetingUrl)
+                .Empty()
+                .When(x => x.Mode == EventMode.Offline)
+                .WithMessage("Offline events cannot include an online meeting URL.");
 
         }
     }

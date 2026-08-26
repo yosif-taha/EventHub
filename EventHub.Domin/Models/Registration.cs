@@ -8,6 +8,7 @@ namespace EventHub.Domin.Models
         public DateTime RegistrationDate { get; set; }
         public RegistrationStatus Status { get; set; }
         public Guid UserId { get; set; } 
+        public ApplicationUser User { get; set; } = null!;
         public Guid EventId { get; set; } // Foreign key to Event
         public Event Event { get; set; } = null!; // Navigation property
         public ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();

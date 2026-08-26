@@ -1,0 +1,12 @@
+namespace EventHub.WebAPI.Presentation.ViewModels.Registrations
+{
+    public class EventRegistrationViewModel
+    {
+        public Guid RegistrationId { get; set; }
+        public Guid AttendeeId { get; set; }
+        public string AttendeeName { get; set; } = string.Empty;
+        public string AttendeeEmail { get; set; } = string.Empty;
+        public DateTime RegistrationDate { get; set; }
+        public string Status { get; set; } = string.Empty;
+    }
+}

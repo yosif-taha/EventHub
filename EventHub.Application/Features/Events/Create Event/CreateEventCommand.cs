@@ -1,4 +1,5 @@
 ﻿using EventHub.Application.Common.Responses;
+using EventHub.Domin.Enums;
 using MediatR;
 
 namespace EventHub.Application.Features.Events.Create_Event
@@ -10,5 +11,7 @@ namespace EventHub.Application.Features.Events.Create_Event
     double Price,   
     string Location,
     Guid CategoryId,
-    int MaxAttendees) : IRequest<RequestResult<Guid>>;
+    int MaxAttendees,
+    EventMode Mode,
+    string? OnlineMeetingUrl) : IRequest<RequestResult<Guid>>;
 }

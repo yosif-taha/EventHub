@@ -32,6 +32,19 @@ namespace EventHub.Application.Features.Events.Create_Event
 
             RuleFor(x => x.CategoryId)
                 .NotEmpty().WithMessage("Please select a valid event category.");
+
+            RuleFor(x => x.Mode).IsInEnum();
+
+            RuleFor(x => x.OnlineMeetingUrl)
+                .NotEmpty()
+                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
+                .When(x => x.Mode == EventHub.Domin.Enums.EventMode.Online)
+                .WithMessage("An absolute online meeting URL is required for online events.");
+
+            RuleFor(x => x.OnlineMeetingUrl)
+                .Empty()
+                .When(x => x.Mode == EventHub.Domin.Enums.EventMode.Offline)
+                .WithMessage("Offline events cannot include an online meeting URL.");
         }
     }
 }
