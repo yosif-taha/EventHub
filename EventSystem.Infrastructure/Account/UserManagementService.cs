@@ -13,6 +13,8 @@ namespace EventHub.Infrastructure.Account
         UserManager<ApplicationUser> _userManager,
         RoleManager<IdentityRole<Guid>> _roleManager) : IUserManagementService
     {
+        public Task<int> GetUserCountAsync(CancellationToken ct) => _userManager.Users.CountAsync(ct);
+
         public async Task<RequestResult<IReadOnlyList<UserRoleDto>>> GetUsersAsync(CancellationToken ct)
         {
             var users = await _userManager.Users.OrderBy(user => user.Email).ToListAsync(ct);
