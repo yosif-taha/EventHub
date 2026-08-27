@@ -8,7 +8,7 @@ namespace EventHub.Application.Features.Auth.Register
     {
         public async Task<RequestResult<Guid>> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
-            var result = await _authService.RegisterAsync(request.Email, request.Password, request.FullName, cancellationToken);
+            var result = await _authService.RegisterAsync(request.Email, request.Password, request.FullName, request.PhoneNumber, cancellationToken);
             if (!result.IsSuccess)
               return RequestResult<Guid>.Failure(result.ErrorCode);
             return RequestResult<Guid>.Success(result.Data);

@@ -9,7 +9,7 @@ namespace EventHub.Infrastructure.Email
     {
         private readonly EmailSettings _options = options.Value;
 
-        public async Task SendEmailAsync(string to, string subject, string body)
+        public async Task SendEmailAsync(string to, string subject, string body, CancellationToken cancellationToken = default)
         {
             // Create the email message
             var email = new MimeMessage();
@@ -27,8 +27,8 @@ namespace EventHub.Infrastructure.Email
             smtp.Connect(_options.Host, _options.Port, SecureSocketOptions.StartTls);
             smtp.Authenticate(_options.Email, _options.Password);
 
-            await smtp.SendAsync(email);
-            smtp.Disconnect(true);
+            await smtp.SendAsync(email, cancellationToken);
+            await smtp.DisconnectAsync(true, cancellationToken);
         }
     }
 }

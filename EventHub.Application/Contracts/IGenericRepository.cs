@@ -9,6 +9,7 @@ namespace EventHub.Application.Contracts
         IQueryable<T> GetAll();
         Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
         Task<T?> GetByIdAsTrackingAsync(Guid id, CancellationToken cancellationToken);
+        Task<T?> FirstOrDefaultAsTrackingAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken);
         Task<TResult?> GetByIdProjectedAsync<TResult>(Expression<Func<T, bool>> predicate, IConfigurationProvider configuration, CancellationToken cancellationToken);
         Task AddAsync(T entity, CancellationToken cancellationToken);
         void SaveInclude(T entity, params string[] includeProperties);

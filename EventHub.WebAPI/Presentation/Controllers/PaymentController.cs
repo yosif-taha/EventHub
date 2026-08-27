@@ -18,29 +18,48 @@ namespace EventHub.WebAPI.Presentation.Controllers
         private readonly PaymobSettings _paymobSettings = _settings.Value;
 
         [HttpPost]
-        public async Task<IActionResult> HandleWebhook([FromBody] JsonObject rawJsonPayload, [FromQuery] string hmac)
+        [HttpPost("/api/payments/paymob/webhook")]
+        public async Task<IActionResult> HandleWebhook([FromBody] JsonObject rawJsonPayload, [FromQuery] string hmac, CancellationToken ct)
         {
+            if (string.IsNullOrWhiteSpace(_paymobSettings.HmacSecret))
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, "Payment webhook is not configured.");
+
             if (!ValidateHmac(rawJsonPayload, hmac))
                 return Unauthorized("Invalid HMAC signature.");
 
-            var payload = rawJsonPayload.Deserialize<PaymobTransactionObj>(new JsonSerializerOptions
+            var transactionObject = rawJsonPayload["obj"] as JsonObject;
+            if (transactionObject is null)
+                return BadRequest("The Paymob callback is incomplete.");
+
+            var payload = transactionObject.Deserialize<PaymobTransactionObj>(new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
             });
 
-            if (payload == null) 
-                return BadRequest();
+            if (payload is null || payload.Id <= 0 || payload.Order is null || payload.Order.Id <= 0)
+                return BadRequest("The Paymob callback is incomplete.");
 
-            var result = await _mediator.Send(new ProcessPaymobWebhookCommand(payload));
+            var result = await _mediator.Send(new ProcessPaymobWebhookCommand(payload), ct);
 
             if (!result.IsSuccess)
+            {
+                if (result.ErrorCode == EventHub.Application.Common.Responses.ErrorCode.InternalServerError)
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+
+                if (result.ErrorCode == EventHub.Application.Common.Responses.ErrorCode.PaymentProviderError)
+                    return BadRequest(result.Message);
+
                 return Ok(result);
+            }
 
             return Ok();
         }
 
         private bool ValidateHmac(JsonObject payload, string receivedHmac)
         {
+            if (string.IsNullOrWhiteSpace(_paymobSettings.HmacSecret))
+                return false;
+
             var obj = payload["obj"] as JsonObject;
             if (obj == null) return false;
 
@@ -69,9 +88,15 @@ namespace EventHub.WebAPI.Presentation.Controllers
             var messageBytes = Encoding.UTF8.GetBytes(stringBuilder.ToString());
             var hash = hmacSha512.ComputeHash(messageBytes);
 
-            string computedHmac = BitConverter.ToString(hash).Replace("-", "").ToLower();
-
-            return computedHmac == receivedHmac;
+            try
+            {
+                var receivedHash = Convert.FromHexString(receivedHmac);
+                return receivedHash.Length == hash.Length && CryptographicOperations.FixedTimeEquals(hash, receivedHash);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
         }
     }
 }

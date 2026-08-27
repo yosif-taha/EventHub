@@ -12,7 +12,8 @@ namespace EventHub.Application.Features.Registerations.CancelRegistrationForEven
             IUnitOfWork _unitOfWork,
             IUserContext _userContext,
             IGenericRepository<Registration> _registrationRepository,
-            IGenericRepository<Event> _eventRepository
+            IGenericRepository<Event> _eventRepository,
+            IGenericRepository<PaymentTransaction> _transactionRepository
         ) : IRequestHandler<CancelRegistrationCommand, RequestResult<bool>>
     {
         public async Task<RequestResult<bool>> Handle(CancelRegistrationCommand request, CancellationToken cancellationToken)
@@ -44,6 +45,16 @@ namespace EventHub.Application.Features.Registerations.CancelRegistrationForEven
                     }
 
                     registration.Status = RegistrationStatus.Canceled;
+                    registration.UpdatedAt = DateTime.UtcNow;
+
+                    var pendingTransaction = await _transactionRepository.FirstOrDefaultAsTrackingAsync(
+                        transaction => transaction.RegistrationId == registration.Id && transaction.Status == PaymentTransactionStatus.Pending,
+                        cancellationToken);
+                    if (pendingTransaction is not null)
+                    {
+                        pendingTransaction.Status = PaymentTransactionStatus.Canceled;
+                        pendingTransaction.UpdatedAt = DateTime.UtcNow;
+                    }
 
                     return RequestResult<bool>.Success(true);
                 }, cancellationToken);

@@ -29,7 +29,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         [HttpPost]
         public async Task<ResponseViewModel> Register([FromBody] RegisterRequestViewModel request, CancellationToken ct)
         {
-           var result = await  _mediator.Send(new RegisterCommand(request.Email, request.Password, request.FullName), ct);
+           var result = await  _mediator.Send(new RegisterCommand(request.Email, request.Password, request.FullName, request.PhoneNumber), ct);
             if (!result.IsSuccess)
                 return new FailedResponseViewModel(result.ErrorCode,result.ErrorCode.GetDescription());
             return new SuccessResponseViewModelT<Guid>(result.Data);

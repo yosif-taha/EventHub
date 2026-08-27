@@ -11,7 +11,19 @@ namespace EventHub.Persistence.Data.Configurations
             builder.HasKey(n => n.Id);
             builder.Property(n => n.Id).ValueGeneratedNever();
 
+            builder.Property(n => n.Subject).HasMaxLength(250).IsRequired();
             builder.Property(n => n.Message).HasMaxLength(1000).IsRequired();
+            builder.Property(n => n.Type).HasConversion<string>().HasMaxLength(50);
+            builder.Property(n => n.DeliveryStatus)
+                   .HasConversion<string>()
+                   .HasMaxLength(20)
+                   .HasDefaultValue(EventHub.Domin.Enums.NotificationDeliveryStatus.Pending);
+            builder.Property(n => n.DeduplicationKey).HasMaxLength(200);
+            builder.Property(n => n.RowVersion).IsRowVersion();
+            builder.HasIndex(n => n.DeduplicationKey)
+                   .IsUnique()
+                   .HasFilter("[DeduplicationKey] IS NOT NULL");
+            builder.HasIndex(n => new { n.DeliveryStatus, n.NotificationDate });
 
             builder.HasOne(n => n.User)
                    .WithMany(u => u.Notifications)

@@ -16,6 +16,13 @@ namespace EventHub.Persistence.Data.Configurations
                    .IsRequired();
 
             builder.Property(pt => pt.Status).HasConversion<string>();
+            builder.Property(pt => pt.RowVersion).IsRowVersion();
+            builder.HasIndex(pt => pt.PaymobOrderId)
+                   .IsUnique()
+                   .HasFilter("[PaymobOrderId] IS NOT NULL");
+            builder.HasIndex(pt => pt.PaymobTransactionId)
+                   .IsUnique()
+                   .HasFilter("[PaymobTransactionId] IS NOT NULL");
 
 
             builder.HasOne(pt => pt.Registration)

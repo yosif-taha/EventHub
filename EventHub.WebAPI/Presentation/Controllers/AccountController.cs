@@ -29,7 +29,7 @@ namespace EventHub.WebAPI.Presentation.Controllers
         [HttpPost]
         public async Task<ResponseViewModel> UpdateUserProfile([FromBody] UpdateUserProfileRequest request, CancellationToken ct)
         {
-            var result = await _mediator.Send(new UpdateUserProfileCommand(request.FullName),ct);
+            var result = await _mediator.Send(new UpdateUserProfileCommand(request.FullName, request.PhoneNumber),ct);
             if (!result.IsSuccess)
                 return new FailedResponseViewModel(result.ErrorCode,result.ErrorCode.GetDescription());
             return new SuccessResponseViewModel("Your profile has been updated successfully.");
