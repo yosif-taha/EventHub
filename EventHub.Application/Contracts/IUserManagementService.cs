@@ -7,6 +7,7 @@ namespace EventHub.Application.Contracts
     public interface IUserManagementService
     {
         Task<RequestResult<IReadOnlyList<UserRoleDto>>> GetUsersAsync(CancellationToken ct = default);
+        Task<int> GetUserCountAsync(CancellationToken ct = default);
         Task<RequestResult<bool>> UpdateUserRoleAsync(Guid userId, UserRole role, CancellationToken ct = default);
     }
 }
