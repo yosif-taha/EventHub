@@ -56,7 +56,7 @@ namespace EventHub.Infrastructure.Auth
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.InternalServerError);
             }
         }
-        public async Task<RequestResult<Guid>> RegisterAsync(string email, string password, string fullName, CancellationToken ct)
+        public async Task<RequestResult<Guid>> RegisterAsync(string email, string password, string fullName, string? phoneNumber, CancellationToken ct)
         {
             bool emailIsAlreadyUsed = await _userManager.Users.AnyAsync(u => u.Email == email, ct);
             if (emailIsAlreadyUsed)
@@ -67,6 +67,7 @@ namespace EventHub.Infrastructure.Auth
                 Email = email,
                 UserName = email,
                 FullName = fullName,
+                PhoneNumber = phoneNumber,
                 Role = UserRole.Attendee
             };
 

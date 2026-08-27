@@ -1,6 +1,7 @@
 ﻿using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;
 using EventHub.Application.Features.Common.Queries.CheckCategoryExists;
+using EventHub.Application.Features.Notifications.QueueEventNotification;
 using EventHub.Domin.Enums;
 using EventHub.Domin.Models;
 using MediatR;
@@ -46,6 +47,16 @@ namespace EventHub.Application.Features.Events.Update_Event
                     !Uri.TryCreate(request.OnlineMeetingUrl, UriKind.Absolute, out _))
                     return RequestResult<Unit>.Failure(ErrorCode.ValidationError, "An absolute online meeting URL is required for online events.");
 
+                var eventDetailsChanged =
+                    (request.Title is not null && request.Title != existingEvent.Title) ||
+                    (request.Description is not null && request.Description != existingEvent.Description) ||
+                    (request.EventDate.HasValue && request.EventDate.Value != existingEvent.EventDate) ||
+                    (request.Location is not null && request.Location != existingEvent.Location) ||
+                    (request.CategoryId.HasValue && request.CategoryId.Value != existingEvent.CategoryId) ||
+                    (request.MaxAttendees.HasValue && request.MaxAttendees.Value != existingEvent.MaxAttendees) ||
+                    (request.Mode.HasValue && request.Mode.Value != existingEvent.Mode) ||
+                    (request.OnlineMeetingUrl is not null && request.OnlineMeetingUrl != existingEvent.OnlineMeetingUrl);
+
                 if (request.Title is not null) existingEvent.Title = request.Title;
                 if (request.Description is not null) existingEvent.Description = request.Description;
                 if (request.EventDate.HasValue) existingEvent.EventDate = request.EventDate.Value;
@@ -66,6 +77,19 @@ namespace EventHub.Application.Features.Events.Update_Event
                 }
 
                 existingEvent.UpdatedAt = DateTime.UtcNow;
+
+                if (eventDetailsChanged)
+                {
+                    var notificationResult = await _mediator.Send(
+                        new QueueEventNotificationCommand(
+                            existingEvent.Id,
+                            NotificationType.EventUpdated,
+                            $"Event updated: {existingEvent.Title}",
+                            $"The details for '{existingEvent.Title}' have been updated. Please review the event information before attending."),
+                        cancellationToken);
+                    if (!notificationResult.IsSuccess)
+                        return RequestResult<Unit>.Failure(notificationResult.ErrorCode, notificationResult.Message!);
+                }
 
                 return RequestResult<Unit>.Success(Unit.Value);
             }, cancellationToken);

@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 namespace EventHub.Application.Features.Account.UpdateUserProfile
 {
     public record UpdateUserProfileCommand(
-        string FullName
+        string FullName,
+        string? PhoneNumber
         ) : IRequest<RequestResult<bool>>;
 
 }

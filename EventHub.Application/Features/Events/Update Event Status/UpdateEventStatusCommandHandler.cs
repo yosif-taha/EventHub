@@ -1,6 +1,8 @@
 using EventHub.Application.Common.Responses;
 using EventHub.Application.Contracts;
+using EventHub.Application.Features.Notifications.QueueEventNotification;
 using EventHub.Domin.Constants;
+using EventHub.Domin.Enums;
 using EventHub.Domin.Models;
 using MediatR;
 
@@ -9,7 +11,8 @@ namespace EventHub.Application.Features.Events.Update_Event_Status
     public class UpdateEventStatusCommandHandler(
         IGenericRepository<Event> _repository,
         IUserContext _userContext,
-        IUnitOfWork _unitOfWork) : IRequestHandler<UpdateEventStatusCommand, RequestResult<Unit>>
+        IUnitOfWork _unitOfWork,
+        IMediator _mediator) : IRequestHandler<UpdateEventStatusCommand, RequestResult<Unit>>
     {
         public async Task<RequestResult<Unit>> Handle(UpdateEventStatusCommand request, CancellationToken cancellationToken)
         {
@@ -29,6 +32,20 @@ namespace EventHub.Application.Features.Events.Update_Event_Status
 
                 @event.TransitionTo(request.Status);
                 @event.UpdatedAt = DateTime.UtcNow;
+
+                if (request.Status == EventStatus.Canceled)
+                {
+                    var notificationResult = await _mediator.Send(
+                        new QueueEventNotificationCommand(
+                            @event.Id,
+                            NotificationType.EventCanceled,
+                            $"Event canceled: {@event.Title}",
+                            $"The event '{@event.Title}' scheduled for {@event.EventDate:yyyy-MM-dd HH:mm} has been canceled."),
+                        cancellationToken);
+                    if (!notificationResult.IsSuccess)
+                        return RequestResult<Unit>.Failure(notificationResult.ErrorCode, notificationResult.Message!);
+                }
+
                 return RequestResult<Unit>.Success(Unit.Value);
             }, cancellationToken);
         }

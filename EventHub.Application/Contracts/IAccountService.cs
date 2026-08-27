@@ -11,7 +11,7 @@ namespace EventHub.Application.Contracts
     public interface IAccountService
     {
         Task<RequestResult<UserProfileResponse>> GetUserProfileAsync(string userId , CancellationToken ct = default);
-        Task<RequestResult<bool>> UpdateUserProfileAsync(string userId, string fullName , CancellationToken ct = default);
+        Task<RequestResult<bool>> UpdateUserProfileAsync(string userId, string fullName, string? phoneNumber, CancellationToken ct = default);
         Task<RequestResult<bool>> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken ct = default);
     }
 }

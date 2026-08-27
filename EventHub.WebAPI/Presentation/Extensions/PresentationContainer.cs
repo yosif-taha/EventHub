@@ -4,6 +4,7 @@ using EventHub.Infrastructure.Auth;
 using EventHub.Persistence.Data.Contexts;
 using EventHub.WebAPI.Presentation.Mapping;
 using EventHub.WebAPI.Presentation.Middlewares;
+using EventHub.WebAPI.Presentation.HostedServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -23,6 +24,7 @@ namespace EventHub.WebAPI.Presentation.Extensions
 
             // Register Middlewares
             services.AddTransient<GlobalErrorHandlerMiddleware>();
+            services.AddHostedService<NotificationHostedService>();
             //services.AddTransient<TransactionMiddleware>();
 
             // AutoMapper

@@ -21,6 +21,10 @@ namespace EventHub.Application.Features.Auth.Register
             
             RuleFor(x => x.FullName).NotEmpty()
                 .MaximumLength(100);
+
+            RuleFor(x => x.PhoneNumber)
+                .MaximumLength(20)
+                .When(x => x.PhoneNumber is not null);
         }
     }
 }

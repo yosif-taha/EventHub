@@ -152,6 +152,7 @@ namespace EventHub.Persistence.Data.Migrations
 
                     b.Property<decimal>("Price")
                         .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0m);
 
@@ -221,11 +222,34 @@ namespace EventHub.Persistence.Data.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("DeduplicationKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("DeliveryAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeliveryLeaseExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeliveryLeaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DeliveryStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending");
+
                     b.Property<Guid>("EventId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastAttemptAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Message")
                         .IsRequired()
@@ -235,6 +259,25 @@ namespace EventHub.Persistence.Data.Migrations
                     b.Property<DateTime>("NotificationDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -243,9 +286,15 @@ namespace EventHub.Persistence.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DeduplicationKey")
+                        .IsUnique()
+                        .HasFilter("[DeduplicationKey] IS NOT NULL");
+
                     b.HasIndex("EventId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("DeliveryStatus", "NotificationDate");
 
                     b.ToTable("Notifications");
                 });
@@ -275,13 +324,19 @@ namespace EventHub.Persistence.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("PaymobOrderId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PaymobTransactionId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<Guid>("RegistrationId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -295,6 +350,14 @@ namespace EventHub.Persistence.Data.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("PaymobOrderId")
+                        .IsUnique()
+                        .HasFilter("[PaymobOrderId] IS NOT NULL");
+
+                    b.HasIndex("PaymobTransactionId")
+                        .IsUnique()
+                        .HasFilter("[PaymobTransactionId] IS NOT NULL");
 
                     b.HasIndex("RegistrationId");
 

@@ -22,10 +22,10 @@ namespace EventHub.Infrastructure.Payment
             {
                 auth_token = authToken,
                 delivery_needed = "false",
-                amount_cents = (int)(request.Amount * 100), 
+                amount_cents = (int)decimal.Round(request.Amount * 100, 0, MidpointRounding.AwayFromZero),
                 currency = "EGP",
                 merchant_order_id = request.RegistrationId.ToString(), 
-                items = new[] { new { name = "Event Ticket", amount_cents = (int)(request.Amount * 100), quantity = 1 } }
+                items = new[] { new { name = "Event Ticket", amount_cents = (int)decimal.Round(request.Amount * 100, 0, MidpointRounding.AwayFromZero), quantity = 1 } }
             };
 
             var orderResponse = await _httpClient.PostAsJsonAsync("ecommerce/orders", orderPayload, cancellationToken);
@@ -37,7 +37,7 @@ namespace EventHub.Infrastructure.Payment
             var paymentKeyPayload = new
             {
                 auth_token = authToken,
-                amount_cents = (int)(request.Amount * 100),
+                amount_cents = (int)decimal.Round(request.Amount * 100, 0, MidpointRounding.AwayFromZero),
                 expiration = (3600 * 3),
                 order_id = paymobOrderId,
                 billing_data = new

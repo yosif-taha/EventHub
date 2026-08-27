@@ -9,5 +9,7 @@ namespace EventHub.Application.Common.Dtos.Registrations.Payments
     public class PaymobOrderDetails
     {
         public long Id { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("merchant_order_id")]
+        public string? MerchantOrderId { get; set; }
     }
 }

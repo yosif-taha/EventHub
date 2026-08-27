@@ -16,15 +16,17 @@ namespace EventHub.Infrastructure.Account
                 .SingleOrDefaultAsync(ct);
             if (user == null)         
                 return RequestResult<UserProfileResponse>.Failure(ErrorCode.UserNotFound);
-            return RequestResult<UserProfileResponse>.Success(new UserProfileResponse(user.Email!, user.UserName!, user.FullName));
+            return RequestResult<UserProfileResponse>.Success(new UserProfileResponse(user.Email!, user.UserName!, user.FullName, user.PhoneNumber));
         }
-        public async Task<RequestResult<bool>> UpdateUserProfileAsync(string userId, string fullName , CancellationToken ct = default)
+        public async Task<RequestResult<bool>> UpdateUserProfileAsync(string userId, string fullName, string? phoneNumber, CancellationToken ct = default)
         {
-            var result = await _userManager.Users
-                .Where(u => u.Id.ToString() == userId)
-                .ExecuteUpdateAsync(setters  => 
-                  setters.SetProperty(u => u.FullName, fullName)
-                 , ct);
+            var users = _userManager.Users.Where(user => user.Id.ToString() == userId);
+            var result = phoneNumber is null
+                ? await users.ExecuteUpdateAsync(setters => setters.SetProperty(user => user.FullName, fullName), ct)
+                : await users.ExecuteUpdateAsync(
+                    setters => setters.SetProperty(user => user.FullName, fullName)
+                                       .SetProperty(user => user.PhoneNumber, phoneNumber),
+                    ct);
           if(result == 0)
                 return RequestResult<bool>.Failure(ErrorCode.InternalServerError);
             return RequestResult<bool>.Success(true);
