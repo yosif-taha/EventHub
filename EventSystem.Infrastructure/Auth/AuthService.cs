@@ -4,10 +4,10 @@ using EventHub.Application.Contracts;
 using EventHub.Domin.Constants;
 using EventHub.Domin.Enums;
 using EventHub.Domin.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -16,8 +16,10 @@ namespace EventHub.Infrastructure.Auth
     public class AuthService(UserManager<ApplicationUser> _userManager,
         IJwtProvider _jwtProvider,
         IEmailService _emailService,
-        IHttpContextAccessor _httpContext) : IAuthService
+        IOptions<AuthSettings> authSettings) : IAuthService
     {
+
+        private readonly AuthSettings _authSettings = authSettings.Value;
 
         private readonly int _refreshTokenExpiryDays = 14;
         public async Task<RequestResult<AuthResponse?>> LoginAsync(string email, string password, CancellationToken ct)
@@ -213,7 +215,15 @@ namespace EventHub.Infrastructure.Auth
             if (!user.EmailConfirmed)
                 return RequestResult<bool>.Failure(ErrorCode.EmailNotConfirmed);
 
-            var decode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code)); // Decode the code from URL
+            string decode;
+            try
+            {
+                decode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+            }
+            catch
+            {
+                return RequestResult<bool>.Failure(ErrorCode.InvalidCredentials);
+            }
            
             var result = await _userManager.ResetPasswordAsync(user, decode, newPassword);
             if (!result.Succeeded)
@@ -224,15 +234,32 @@ namespace EventHub.Infrastructure.Auth
         private static string GenerateRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         private async Task SendConfirmationEmailAsync(ApplicationUser user, string code)
         {
-            var origin = _httpContext.HttpContext?.Request.Headers.Origin;
-            var emailBodey = $"{origin}/auth/emailConfirmation/?userId={user.Id}&code={code}";
-            await _emailService.SendEmailAsync(user.Email!, "Confirm your email", emailBodey);
+            var emailBody = BuildPublicLink(
+                "Auth/ConfirmEmail",
+                new Dictionary<string, string?>
+                {
+                    ["userId"] = user.Id.ToString(),
+                    ["code"] = code
+                });
+            await _emailService.SendEmailAsync(user.Email!, "Confirm your email", emailBody);
         }
         private async Task SendResetPasswordEmailAsync(ApplicationUser user, string code)
         {
-            var origin = _httpContext.HttpContext?.Request.Headers.Origin;
-            var emailBodey = $"{origin}/auth/ResetPassword/?email={user.Email}&code={code}";
-            await _emailService.SendEmailAsync(user.Email!, "Reset Password", emailBodey);
+            var emailBody = BuildPublicLink(
+                "Auth/ResetPassword",
+                new Dictionary<string, string?>
+                {
+                    ["email"] = user.Email,
+                    ["code"] = code
+                });
+            await _emailService.SendEmailAsync(user.Email!, "Reset Password", emailBody);
+        }
+
+        private string BuildPublicLink(string relativePath, IReadOnlyDictionary<string, string?> query)
+        {
+            var baseUri = new Uri(_authSettings.PublicBaseUrl, UriKind.Absolute);
+            var targetUri = new Uri(baseUri, relativePath);
+            return QueryHelpers.AddQueryString(targetUri.ToString(), query);
         }
     }
 }

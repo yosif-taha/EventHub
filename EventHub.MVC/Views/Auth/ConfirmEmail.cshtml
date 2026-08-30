@@ -1,0 +1,15 @@
+@model ConfirmEmailViewModel
+@{
+    ViewData["Title"] = "Confirm email";
+}
+
+<section class="auth-card">
+    <h1>Confirm your email</h1>
+    <p>Confirm your email address to activate your account.</p>
+    <form asp-action="ConfirmEmail" method="post">
+        <input asp-for="UserId" type="hidden" />
+        <input asp-for="Code" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
+        <button type="submit" class="button">Confirm email</button>
+    </form>
+</section>

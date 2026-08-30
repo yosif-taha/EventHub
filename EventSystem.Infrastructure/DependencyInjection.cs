@@ -20,6 +20,10 @@ namespace EventHub.Infrastructure
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserManagementService, UserManagementService>();
+            services.AddSingleton<IValidateOptions<AuthSettings>, AuthSettingsValidator>();
+            services.AddOptions<AuthSettings>()
+                .BindConfiguration(nameof(AuthSettings))
+                .ValidateOnStart();
 
             // Email
             services.Configure<EmailSettings>(configuration.GetSection(nameof(EmailSettings)));
