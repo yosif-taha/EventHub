@@ -1,6 +1,8 @@
 ﻿using EventHub.Application.Contracts;
 using EventHub.Persistence.Data.Contexts;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Data;
 
 namespace EventHub.Persistence.Unit_Of_Work
 {
@@ -9,9 +11,17 @@ namespace EventHub.Persistence.Unit_Of_Work
         private IDbContextTransaction? _transaction;
         public async Task<T> ExecuteAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken)
         {
+            return await ExecuteAsync(action, IsolationLevel.ReadCommitted, cancellationToken);
+        }
+
+        public async Task<T> ExecuteAsync<T>(
+            Func<Task<T>> action,
+            IsolationLevel isolationLevel,
+            CancellationToken cancellationToken)
+        {
             var isOuterTransaction = _transaction is null;
             if (isOuterTransaction)
-                _transaction = await _context.Database.BeginTransactionAsync();
+                _transaction = await _context.Database.BeginTransactionAsync(isolationLevel, cancellationToken);
 
             try
             {

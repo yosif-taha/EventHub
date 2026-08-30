@@ -1,0 +1,84 @@
+@model EventEditorViewModel
+
+@if (!string.IsNullOrWhiteSpace(Model.CategoryLoadError))
+{
+    <div class="message error" role="alert">@Model.CategoryLoadError</div>
+}
+<div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
+<input asp-for="IsEdit" type="hidden" />
+<input asp-for="CurrentCategoryName" type="hidden" />
+<div class="form-field">
+    <label asp-for="Title"></label>
+    <input asp-for="Title" maxlength="200" />
+    <span asp-validation-for="Title" class="field-validation"></span>
+</div>
+<div class="form-field">
+    <label asp-for="Description"></label>
+    <textarea asp-for="Description" rows="6" maxlength="2000"></textarea>
+    <span asp-validation-for="Description" class="field-validation"></span>
+</div>
+<div class="form-field">
+    <label asp-for="EventDate"></label>
+    <input asp-for="EventDate" type="datetime-local" aria-describedby="event-date-help" />
+    <span asp-validation-for="EventDate" class="field-validation"></span>
+    <span id="event-date-help" class="muted">Enter the event time in UTC. Attendees will see the same scheduled instant.</span>
+</div>
+<div class="form-field">
+    <label asp-for="Location"></label>
+    <input asp-for="Location" />
+    <span asp-validation-for="Location" class="field-validation"></span>
+</div>
+<div class="form-field">
+    <label asp-for="CategoryId"></label>
+    <select asp-for="CategoryId">
+        @if (Model.IsEdit)
+        {
+            <option value="">Keep current category (@Model.CurrentCategoryName)</option>
+        }
+        else
+        {
+            <option value="">Select a category</option>
+        }
+        @foreach (var category in Model.Categories)
+        {
+            <option value="@category.Id">@category.Name</option>
+        }
+    </select>
+    <span asp-validation-for="CategoryId" class="field-validation"></span>
+</div>
+<div class="form-field">
+    <label asp-for="MaxAttendees"></label>
+    <input asp-for="MaxAttendees" min="1" />
+    <span asp-validation-for="MaxAttendees" class="field-validation"></span>
+</div>
+<div class="form-field">
+    <label asp-for="Mode"></label>
+    <select asp-for="Mode">
+        <option value="0">Offline</option>
+        <option value="1">Online</option>
+    </select>
+    <span asp-validation-for="Mode" class="field-validation"></span>
+</div>
+<div class="form-field">
+    <label asp-for="OnlineMeetingUrl"></label>
+    <input asp-for="OnlineMeetingUrl" type="url" placeholder="https://example.com/meeting" />
+    <span asp-validation-for="OnlineMeetingUrl" class="field-validation"></span>
+    <span class="muted">Required for online events and left empty for offline events.</span>
+</div>
+@if (Model.IsEdit)
+{
+    <div class="form-field">
+        <label asp-for="Price"></label>
+        <input asp-for="Price" readonly aria-describedby="price-help" />
+        <span id="price-help" class="muted">The existing backend update API does not support changing an event price.</span>
+    </div>
+}
+else
+{
+    <div class="form-field">
+        <label asp-for="Price"></label>
+        <input asp-for="Price" min="0" step="0.01" />
+        <span asp-validation-for="Price" class="field-validation"></span>
+        <span class="muted">Set the price to 0 for a free event.</span>
+    </div>
+}

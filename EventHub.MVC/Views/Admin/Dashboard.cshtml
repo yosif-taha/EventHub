@@ -1,0 +1,59 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin dashboard";
+}
+
+<section class="page-heading">
+    <h1>Admin dashboard</h1>
+    <p>System-wide event, registration, user, and payment information.</p>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="message error" role="alert">@Model.ErrorMessage</div>
+}
+else
+{
+    <section class="metric-grid" aria-label="System summary">
+        <article class="metric-card"><span>Total users</span><strong>@Model.Dashboard.TotalUsers</strong></article>
+        <article class="metric-card"><span>Total events</span><strong>@Model.Dashboard.TotalEvents</strong></article>
+        <article class="metric-card"><span>Total registrations</span><strong>@Model.Dashboard.TotalRegistrations</strong></article>
+        <article class="metric-card"><span>Payment transactions</span><strong>@Model.Dashboard.Payments.TotalTransactions</strong></article>
+    </section>
+
+    <section class="card">
+        <h2>Event status overview</h2>
+        @if (Model.Dashboard.EventStatusOverview.Count == 0)
+        {
+            <p class="muted">No event activity is available.</p>
+        }
+        else
+        {
+            <dl class="status-overview">
+                @foreach (var status in Model.Dashboard.EventStatusOverview)
+                {
+                    <div><dt><span class="status @status.Status.ToLowerInvariant()">@status.Status</span></dt><dd>@status.Count event@(status.Count == 1 ? string.Empty : "s")</dd></div>
+                }
+            </dl>
+        }
+    </section>
+
+    <section class="card">
+        <h2>Payments</h2>
+        <div class="metric-grid compact-metrics">
+            <article class="metric-card"><span>Successful</span><strong>@Model.Dashboard.Payments.SuccessfulPayments</strong></article>
+            <article class="metric-card"><span>Pending</span><strong>@Model.Dashboard.Payments.PendingPayments</strong></article>
+            <article class="metric-card"><span>Failed or canceled</span><strong>@Model.Dashboard.Payments.FailedOrCanceledPayments</strong></article>
+            <article class="metric-card"><span>Successful amount</span><strong>@Model.Dashboard.Payments.SuccessfulPaymentAmount.ToString("N2") EGP</strong></article>
+        </div>
+        @if (Model.Dashboard.Payments.StatusOverview.Count > 0)
+        {
+            <dl class="status-overview">
+                @foreach (var status in Model.Dashboard.Payments.StatusOverview)
+                {
+                    <div><dt><span class="status @status.Status.ToLowerInvariant()">@status.Status</span></dt><dd>@status.Count transaction@(status.Count == 1 ? string.Empty : "s")</dd></div>
+                }
+            </dl>
+        }
+    </section>
+}

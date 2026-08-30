@@ -1,0 +1,27 @@
+@model OrganizerEventStatisticsViewModel
+@{
+    ViewData["Title"] = "Event statistics";
+    var percentage = Model.Event.MaxAttendees == 0 ? 0 : (double)Model.Event.CurrentAttendeesCount / Model.Event.MaxAttendees * 100;
+}
+
+<section class="page-heading page-heading-with-action">
+    <div>
+        <h1>Event statistics</h1>
+        <p>@Model.Event.Title</p>
+    </div>
+    <a class="button secondary" asp-action="Attendees" asp-route-id="@Model.Event.Id">View attendees</a>
+</section>
+
+<section class="metric-grid" aria-label="Event statistics">
+    <article class="metric-card"><span>Registration records</span><strong>@Model.RegistrationCount</strong></article>
+    <article class="metric-card"><span>Current attendees</span><strong>@Model.Event.CurrentAttendeesCount</strong></article>
+    <article class="metric-card"><span>Remaining capacity</span><strong>@Model.Event.RemainingSlots</strong></article>
+    <article class="metric-card"><span>Capacity</span><strong>@Model.Event.MaxAttendees</strong></article>
+</section>
+
+<section class="card">
+    <h2>Event status</h2>
+    <p><span class="status @Model.Event.Status.ToLowerInvariant()">@Model.Event.Status</span></p>
+    <p><strong>Capacity usage:</strong> @Model.Event.CurrentAttendeesCount of @Model.Event.MaxAttendees (@percentage.ToString("0")%)</p>
+    <p class="muted">Registration records and current attendees use the backend’s existing registration and capacity semantics. Payment totals are not available to organizers.</p>
+</section>

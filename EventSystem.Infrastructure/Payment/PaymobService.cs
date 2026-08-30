@@ -11,6 +11,8 @@ namespace EventHub.Infrastructure.Payment
 
         public async Task<PaymobPaymentResponse> GeneratePaymentLinkAsync(PaymobPaymentRequest request, CancellationToken cancellationToken)
         {
+            var returnUrl = BuildReturnUrl(request.RegistrationId);
+
             // Authentication 
             var authResponse = await _httpClient.PostAsJsonAsync("auth/tokens", new { api_key = _paymobSettings.ApiKey }, cancellationToken);
             authResponse.EnsureSuccessStatusCode();
@@ -54,7 +56,8 @@ namespace EventHub.Infrastructure.Payment
                     country = "EG" 
                 },
                 currency = "EGP",
-                integration_id = _paymobSettings.CardIntegrationId 
+                integration_id = _paymobSettings.CardIntegrationId,
+                redirection_url = returnUrl
             };
 
             var paymentKeyResponse = await _httpClient.PostAsJsonAsync("acceptance/payment_keys", paymentKeyPayload, cancellationToken);
@@ -65,6 +68,18 @@ namespace EventHub.Infrastructure.Payment
             // Final Step (Return URL)
             string paymentUrl = $"https://accept.paymob.com/api/acceptance/iframes/{_paymobSettings.IframeId}?payment_token={paymentToken}";
             return new PaymobPaymentResponse(paymentUrl, paymobOrderId);
+        }
+
+        private string BuildReturnUrl(Guid registrationId)
+        {
+            if (string.IsNullOrWhiteSpace(_paymobSettings.ReturnUrl))
+                throw new InvalidOperationException("The Paymob return URL is not configured.");
+
+            var returnUrl = _paymobSettings.ReturnUrl.Replace("{registrationId}", registrationId.ToString(), StringComparison.Ordinal);
+            if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+                throw new InvalidOperationException("The Paymob return URL must be an absolute HTTPS URL.");
+
+            return uri.ToString();
         }
     }
 }

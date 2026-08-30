@@ -1,0 +1,91 @@
+@model EventListViewModel
+@{
+    ViewData["Title"] = "Events";
+}
+
+<section class="page-heading">
+    <h1>Explore events</h1>
+    <p>Find upcoming events and reserve your place.</p>
+</section>
+
+<form method="get" class="filter-card">
+    <div class="filter-grid">
+        <div class="form-field">
+            <label asp-for="Filter.SearchValue">Search</label>
+            <input asp-for="Filter.SearchValue" placeholder="Title or location" />
+        </div>
+        <div class="form-field">
+            <label asp-for="Filter.CategoryId">Category</label>
+            <select asp-for="Filter.CategoryId">
+                <option value="">All categories</option>
+                @foreach (var category in Model.Categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </select>
+        </div>
+        <div class="form-field">
+            <label asp-for="Filter.SortColumn">Sort by</label>
+            <select asp-for="Filter.SortColumn">
+                <option value="">Event date</option>
+                <option value="Title">Title</option>
+                <option value="Location">Location</option>
+            </select>
+        </div>
+        <div class="form-field">
+            <label asp-for="Filter.SortDirection">Direction</label>
+            <select asp-for="Filter.SortDirection">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+        </div>
+    </div>
+    <button type="submit" class="button">Apply filters</button>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="message error" role="alert">@Model.ErrorMessage</div>
+}
+else if (Model.Events.Items.Count == 0)
+{
+    <section class="card empty-state">
+        <h2>No events found</h2>
+        <p>Try adjusting your search or filter.</p>
+    </section>
+}
+else
+{
+    <section class="event-grid" aria-label="Events">
+        @foreach (var evt in Model.Events.Items)
+        {
+            <article class="event-card">
+                <div class="event-card-header">
+                    <span class="status @evt.Status.ToLowerInvariant()">@evt.Status</span>
+                    <span>@evt.CategoryName</span>
+                </div>
+                <h2><a asp-action="Details" asp-route-id="@evt.Id">@evt.Title</a></h2>
+                <p>@evt.Description</p>
+                <dl class="event-meta">
+                    <div><dt>Date</dt><dd>@evt.EventDate.ToLocalTime().ToString("ddd, dd MMM yyyy HH:mm")</dd></div>
+                    <div><dt>Location</dt><dd>@evt.Location (@evt.Mode)</dd></div>
+                    <div><dt>Availability</dt><dd>@evt.RemainingSlots of @evt.MaxAttendees places remaining</dd></div>
+                    <div><dt>Price</dt><dd>@(evt.PaymentRequired ? $"{evt.Price:N2} EGP" : "Free")</dd></div>
+                </dl>
+                <a class="button secondary" asp-action="Details" asp-route-id="@evt.Id">View details</a>
+            </article>
+        }
+    </section>
+
+    <nav class="pagination" aria-label="Event pages">
+        @if (Model.Events.HasPreviousPage)
+        {
+            <a asp-action="Index" asp-route-searchValue="@Model.Filter.SearchValue" asp-route-categoryId="@Model.Filter.CategoryId" asp-route-sortColumn="@Model.Filter.SortColumn" asp-route-sortDirection="@Model.Filter.SortDirection" asp-route-pageNumber="@(Model.Events.PageNumber - 1)">Previous</a>
+        }
+        <span>Page @Model.Events.PageNumber of @Model.Events.TotalPages</span>
+        @if (Model.Events.HasNextPage)
+        {
+            <a asp-action="Index" asp-route-searchValue="@Model.Filter.SearchValue" asp-route-categoryId="@Model.Filter.CategoryId" asp-route-sortColumn="@Model.Filter.SortColumn" asp-route-sortDirection="@Model.Filter.SortDirection" asp-route-pageNumber="@(Model.Events.PageNumber + 1)">Next</a>
+        }
+    </nav>
+}

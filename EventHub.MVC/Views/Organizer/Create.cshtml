@@ -1,0 +1,19 @@
+@model EventEditorViewModel
+@{
+    ViewData["Title"] = "Create event";
+}
+
+<section class="page-heading">
+    <h1>Create event</h1>
+    <p>Set the event details that attendees will see.</p>
+</section>
+
+<section class="card form-card">
+    <form asp-action="Create" method="post">
+        <partial name="_EventFields" model="Model" />
+        <div class="action-row">
+            <button type="submit" class="button">Create event</button>
+            <a class="button secondary" asp-action="Events">Cancel</a>
+        </div>
+    </form>
+</section>

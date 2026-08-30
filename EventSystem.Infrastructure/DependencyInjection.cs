@@ -32,7 +32,10 @@ namespace EventHub.Infrastructure
             services.AddScoped<IDbExecutor, DbExecutor>();
 
             // Payment
-            services.Configure<PaymobSettings>(configuration.GetSection(nameof(PaymobSettings)));
+            services.AddOptions<PaymobSettings>()
+                .BindConfiguration(nameof(PaymobSettings))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
             services.AddHttpClient<IPaymobService, PaymobService>((sp, client) =>
             {
                 var settings = sp.GetRequiredService<IOptions<PaymobSettings>>().Value;

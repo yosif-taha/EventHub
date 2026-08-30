@@ -1,0 +1,47 @@
+@model AdminRegistrationsViewModel
+@{
+    ViewData["Title"] = "Global registrations";
+}
+
+<section class="page-heading"><h1>Global registrations</h1><p>Administrative registration view. The current backend provides no registration mutation actions.</p></section>
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="message error" role="alert">@Model.ErrorMessage</div>
+}
+else if (Model.Registrations.Items.Count == 0)
+{
+    <section class="card empty-state"><h2>No registrations found</h2></section>
+}
+else
+{
+    <section class="card table-card"><div class="table-scroll"><table>
+        <caption>Global event registrations and their latest payment status</caption>
+        <thead><tr><th scope="col">Attendee</th><th scope="col">Event</th><th scope="col">Registration</th><th scope="col">Payment</th></tr></thead>
+        <tbody>
+        @foreach (var registration in Model.Registrations.Items)
+        {
+            <tr>
+                <td><strong>@registration.AttendeeName</strong><br /><a href="mailto:@registration.AttendeeEmail">@registration.AttendeeEmail</a></td>
+                <td><a asp-controller="Events" asp-action="Details" asp-route-id="@registration.EventId">@registration.EventTitle</a><br /><span class="muted">@registration.EventDate.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span></td>
+                <td><span class="status @registration.RegistrationStatus.ToString().ToLowerInvariant()">@registration.RegistrationStatus</span><br /><span class="muted">@registration.RegistrationDate.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span></td>
+                <td>
+                    @if (registration.PaymentStatus.HasValue)
+                    {
+                        <span class="status @registration.PaymentStatus.Value.ToString().ToLowerInvariant()">@registration.PaymentStatus</span><br />
+                        <span class="muted">@(registration.PaymentAmount.HasValue ? $"{registration.PaymentAmount:N2} {registration.PaymentCurrency}" : "Amount unavailable")</span>
+                    }
+                    else
+                    {
+                        <span class="muted">No payment required</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table></div></section>
+    <nav class="pagination" aria-label="Registration pages">
+        @if (Model.Registrations.HasPreviousPage) { <a asp-action="Registrations" asp-route-pageNumber="@(Model.Registrations.PageNumber - 1)">Previous</a> }
+        <span>Page @Model.Registrations.PageNumber of @Model.Registrations.TotalPages</span>
+        @if (Model.Registrations.HasNextPage) { <a asp-action="Registrations" asp-route-pageNumber="@(Model.Registrations.PageNumber + 1)">Next</a> }
+    </nav>
+}

@@ -1,0 +1,45 @@
+@model OrganizerDashboardViewModel
+@{
+    ViewData["Title"] = "Organizer dashboard";
+}
+
+<section class="page-heading page-heading-with-action">
+    <div>
+        <h1>Organizer dashboard</h1>
+        <p>Track the events and registrations you manage.</p>
+    </div>
+    <a class="button" asp-action="Create">Create event</a>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="message error" role="alert">@Model.ErrorMessage</div>
+}
+else
+{
+    <section class="metric-grid" aria-label="Organizer summary">
+        <article class="metric-card"><span>Total events</span><strong>@Model.Dashboard.TotalEvents</strong></article>
+        <article class="metric-card"><span>Total registrations</span><strong>@Model.Dashboard.TotalRegistrations</strong></article>
+        <article class="metric-card"><span>Current attendees</span><strong>@Model.Dashboard.TotalAttendees</strong></article>
+    </section>
+
+    <section class="card">
+        <h2>Event status overview</h2>
+        @if (Model.Dashboard.EventStatusOverview.Count == 0)
+        {
+            <p class="muted">You have not created any events yet.</p>
+        }
+        else
+        {
+            <dl class="status-overview">
+                @foreach (var status in Model.Dashboard.EventStatusOverview)
+                {
+                    <div>
+                        <dt><span class="status @status.Status.ToLowerInvariant()">@status.Status</span></dt>
+                        <dd>@status.Count event@(status.Count == 1 ? string.Empty : "s")</dd>
+                    </div>
+                }
+            </dl>
+        }
+    </section>
+}

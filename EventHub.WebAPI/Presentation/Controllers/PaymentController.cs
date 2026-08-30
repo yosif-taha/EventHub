@@ -19,10 +19,13 @@ namespace EventHub.WebAPI.Presentation.Controllers
 
         [HttpPost]
         [HttpPost("/api/payments/paymob/webhook")]
-        public async Task<IActionResult> HandleWebhook([FromBody] JsonObject rawJsonPayload, [FromQuery] string hmac, CancellationToken ct)
+        public async Task<IActionResult> HandleWebhook([FromBody] JsonObject? rawJsonPayload, [FromQuery] string? hmac, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(_paymobSettings.HmacSecret))
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, "Payment webhook is not configured.");
+
+            if (rawJsonPayload is null)
+                return BadRequest("The Paymob callback is incomplete.");
 
             if (!ValidateHmac(rawJsonPayload, hmac))
                 return Unauthorized("Invalid HMAC signature.");
@@ -43,21 +46,20 @@ namespace EventHub.WebAPI.Presentation.Controllers
 
             if (!result.IsSuccess)
             {
-                if (result.ErrorCode == EventHub.Application.Common.Responses.ErrorCode.InternalServerError)
-                    return StatusCode(StatusCodes.Status500InternalServerError);
-
                 if (result.ErrorCode == EventHub.Application.Common.Responses.ErrorCode.PaymentProviderError)
                     return BadRequest(result.Message);
 
-                return Ok(result);
+                return StatusCode(
+                    StatusCodes.Status503ServiceUnavailable,
+                    "The payment callback could not be processed. Please retry.");
             }
 
             return Ok();
         }
 
-        private bool ValidateHmac(JsonObject payload, string receivedHmac)
+        private bool ValidateHmac(JsonObject payload, string? receivedHmac)
         {
-            if (string.IsNullOrWhiteSpace(_paymobSettings.HmacSecret))
+            if (string.IsNullOrWhiteSpace(_paymobSettings.HmacSecret) || string.IsNullOrWhiteSpace(receivedHmac))
                 return false;
 
             var obj = payload["obj"] as JsonObject;
