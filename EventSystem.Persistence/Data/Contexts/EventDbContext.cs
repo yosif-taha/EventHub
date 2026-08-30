@@ -26,8 +26,7 @@ namespace EventHub.Persistence.Data.Contexts
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
 
-            optionsBuilder.LogTo(log => Debug.WriteLine(log), LogLevel.Information).
-                EnableSensitiveDataLogging(true); // Enable sensitive data logging for debugging purposes
+            optionsBuilder.LogTo(log => Debug.WriteLine(log), LogLevel.Information);
 
             optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking); // Default tracking behavior set to NoTracking
             base.OnConfiguring(optionsBuilder);

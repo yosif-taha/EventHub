@@ -1,0 +1,59 @@
+@model EventDetailsViewModel
+@{
+    ViewData["Title"] = Model.Event.Title;
+}
+
+@if (TempData["Error"] is string error)
+{
+    <div class="message error" role="alert">@error</div>
+}
+
+<section class="card event-details">
+    <div class="event-card-header">
+        <span class="status @Model.Event.Status.ToLowerInvariant()">@Model.Event.Status</span>
+        <span>@Model.Event.CategoryName</span>
+    </div>
+    <h1>@Model.Event.Title</h1>
+    <p class="event-description">@Model.Event.Description</p>
+    <dl class="event-meta details-meta">
+        <div><dt>Date and time</dt><dd>@Model.Event.EventDate.ToLocalTime().ToString("dddd, dd MMMM yyyy HH:mm")</dd></div>
+        <div><dt>Location</dt><dd>@Model.Event.Location</dd></div>
+        <div><dt>Mode</dt><dd>@Model.Event.Mode</dd></div>
+        <div><dt>Capacity</dt><dd>@Model.Event.CurrentAttendeesCount of @Model.Event.MaxAttendees registered</dd></div>
+        <div><dt>Availability</dt><dd>@Model.Availability.RemainingSlots place(s) remaining</dd></div>
+        <div><dt>Price</dt><dd>@(Model.Event.PaymentRequired ? $"{Model.Event.Price:N2} EGP" : "Free")</dd></div>
+    </dl>
+
+    @if (Model.AttendeeMeetingLink is not null)
+    {
+        <p class="message success" role="status">
+            Your registration is confirmed. <a href="@Model.AttendeeMeetingLink.OnlineMeetingUrl" target="_blank" rel="noopener noreferrer">Join the online event</a>.
+        </p>
+    }
+
+    @if (Model.Availability.IsAvailable)
+    {
+        @if (User.Identity?.IsAuthenticated != true)
+        {
+            <a class="button" asp-controller="Auth" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Events", new { id = Model.Event.Id })">Log in to register</a>
+        }
+        else if (User.IsInRole(RoleNames.Attendee))
+        {
+            <form asp-controller="Registrations" asp-action="Create" asp-route-eventId="@Model.Event.Id" method="post">
+                <button type="submit" class="button">@(Model.Event.PaymentRequired ? "Continue to payment" : "Register for free")</button>
+            </form>
+        }
+        else
+        {
+            <p class="message">Registration is available to attendee accounts.</p>
+        }
+    }
+    else if (Model.Availability.IsCancelled)
+    {
+        <p class="message error">This event has been canceled.</p>
+    }
+    else
+    {
+        <p class="message">Registration is not currently available for this event.</p>
+    }
+</section>

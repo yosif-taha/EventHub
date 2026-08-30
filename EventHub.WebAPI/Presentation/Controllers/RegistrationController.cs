@@ -4,6 +4,8 @@ using EventHub.Application.Common.Models;
 using EventHub.Application.Features.Registerations.CancelRegistrationForEvent;
 using EventHub.Application.Features.Registerations.GetUserRegistrations;
 using EventHub.Application.Features.Registerations.GetEventRegistrations;
+using EventHub.Application.Features.Registerations.GetMyRegistrationStatus;
+using EventHub.Application.Features.Registerations.GetMyEventMeetingLink;
 using EventHub.Application.Features.Registerations.RegisterationForEvent;
 using EventHub.WebAPI.Presentation.ViewModels.Registrations;
 using EventHub.WebAPI.Presentation.ViewModels.Request;
@@ -68,6 +70,34 @@ namespace EventHub.WebAPI.Presentation.Controllers
             var paginatedData = new PaginatedList<GetUserRegistrationsViewModel>(data, result.Data.TotalCount, result.Data.PageNumber, request.PageSize);
 
             return new SuccessResponseViewModelT<PaginatedList<GetUserRegistrationsViewModel>>(paginatedData);
+        }
+
+        [HttpGet("/api/registrations/{registrationId:guid}/status")]
+        [Authorize(Roles = RoleNames.Attendee)]
+        public async Task<ResponseViewModel> GetMyRegistrationStatus(Guid registrationId, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetMyRegistrationStatusQuery(registrationId), ct);
+            if (!result.IsSuccess)
+                return new FailedResponseViewModel(result.ErrorCode, result.Message ?? result.ErrorCode.GetDescription());
+
+            var data = _mapper.Map<RegistrationPaymentStatusViewModel>(result.Data);
+            return new SuccessResponseViewModelT<RegistrationPaymentStatusViewModel>(data);
+        }
+
+        [HttpGet("/api/registrations/events/{eventId:guid}/meeting-link")]
+        [Authorize(Roles = RoleNames.Attendee)]
+        public async Task<ResponseViewModel> GetMyEventMeetingLink(Guid eventId, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetMyEventMeetingLinkQuery(eventId), ct);
+            if (!result.IsSuccess)
+                return new FailedResponseViewModel(result.ErrorCode, result.Message ?? result.ErrorCode.GetDescription());
+
+            var data = result.Data!;
+            return new SuccessResponseViewModelT<EventMeetingLinkViewModel>(new EventMeetingLinkViewModel(
+                data.EventId,
+                data.EventTitle,
+                data.EventDate,
+                data.OnlineMeetingUrl));
         }
 
         [HttpGet("{eventId:guid}")]

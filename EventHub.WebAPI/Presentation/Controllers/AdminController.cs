@@ -43,13 +43,13 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<ResponseViewModel> GetUsers(CancellationToken ct)
+        public async Task<ResponseViewModel> GetUsers([FromQuery] RequestFilter request, CancellationToken ct)
         {
-            var result = await _mediator.Send(new GetUsersQuery(), ct);
+            var result = await _mediator.Send(new GetUsersQuery(request.PageNumber, request.PageSize, request.SearchValue), ct);
             if (!result.IsSuccess)
-                return new FailedResponseViewModel(result.ErrorCode, result.ErrorCode.GetDescription());
+                return new FailedResponseViewModel(result.ErrorCode, result.Message ?? result.ErrorCode.GetDescription());
 
-            return new SuccessResponseViewModelT<IReadOnlyList<UserRoleDto>>(result.Data!);
+            return new SuccessResponseViewModelT<PaginatedList<UserRoleDto>>(result.Data!);
         }
 
         [HttpPost("{userId}")]

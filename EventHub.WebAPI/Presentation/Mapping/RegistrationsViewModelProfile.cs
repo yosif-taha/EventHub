@@ -11,6 +11,7 @@ namespace EventHub.WebAPI.Presentation.Mapping
             CreateMap<UserRegistrationDto, GetUserRegistrationsViewModel>();
             CreateMap<EventRegistrationDto, EventRegistrationViewModel>();
             CreateMap<RegistrationResultDto, RegistrationResultViewModel>();
+            CreateMap<RegistrationPaymentStatusDto, RegistrationPaymentStatusViewModel>();
         }
     }
 }

@@ -5,6 +5,7 @@ using EventHub.Application.Features.Events.Check_Event_Availability;
 using EventHub.Application.Features.Events.Create_Event;
 using EventHub.Application.Features.Events.Delete_Event;
 using EventHub.Application.Features.Events.Get_Event_By_Id;
+using EventHub.Application.Features.Events.GetManagedEventById;
 using EventHub.Application.Features.Events.GetAll_Events;
 using EventHub.Application.Features.Events.Update_Event;
 using EventHub.Application.Features.Events.Update_Event_Status;
@@ -25,13 +26,14 @@ namespace EventHub.WebAPI.Presentation.Controllers
     {
         [HttpGet]
         [HttpGet("/api/events")]
-        [Authorize(Roles = RoleNames.AllUsers)]
+        [AllowAnonymous]
         public async Task<ResponseViewModel> GetAllEvents([FromQuery] RequestFilter request, Guid? categoryId, CancellationToken ct)
         {
             var result = await _mediator.Send(new GetAllEventsQuery(request.SearchValue, categoryId, request.SortColumn, request.SortDirection, request.PageNumber, request.PageSize), ct);
             if (!result.IsSuccess)
                 return new FailedResponseViewModel(result.ErrorCode, result.ErrorCode.GetDescription());
             var data = _mapper.Map<List<GetAllEventsViewModel>>(result.Data!.Items);
+            data.ForEach(@event => @event.OnlineMeetingUrl = null);
             var paginatedData = new PaginatedList<GetAllEventsViewModel>(
                  data,
                  result.Data.TotalCount,
@@ -42,18 +44,30 @@ namespace EventHub.WebAPI.Presentation.Controllers
        
         [HttpGet]
         [HttpGet("/api/events/{id:guid}")]
-        [Authorize(Roles = RoleNames.AllUsers)]
+        [AllowAnonymous]
         public async Task<ResponseViewModel> GetEventById(Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new GetEventByIdQuery(id), ct);
             if (!result.IsSuccess)
                 return new FailedResponseViewModel(result.ErrorCode, result.ErrorCode.GetDescription());
             var data = _mapper.Map<GetEventByIdViewModel>(result.Data);
+            data.OnlineMeetingUrl = null;
             return new SuccessResponseViewModelT<GetEventByIdViewModel>(data);
         }
 
+        [HttpGet("/api/events/{id:guid}/management")]
+        [Authorize(Roles = RoleNames.AdminOrOrganizer)]
+        public async Task<ResponseViewModel> GetManagedEventById(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetManagedEventByIdQuery(id), ct);
+            if (!result.IsSuccess)
+                return new FailedResponseViewModel(result.ErrorCode, result.Message ?? result.ErrorCode.GetDescription());
+
+            return new SuccessResponseViewModelT<GetEventByIdViewModel>(_mapper.Map<GetEventByIdViewModel>(result.Data));
+        }
+
         [HttpGet]
-        [Authorize(Roles = RoleNames.AllUsers)]
+        [AllowAnonymous]
         public async Task<ResponseViewModel> CheckEventAvailability([FromQuery] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new CheckEventAvailabilityQuery(id), ct);

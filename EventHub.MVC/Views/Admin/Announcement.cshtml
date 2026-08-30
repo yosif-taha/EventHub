@@ -1,0 +1,15 @@
+@model EventAnnouncementViewModel
+@{
+    ViewData["Title"] = "Send announcement";
+}
+
+<section class="page-heading"><h1>Send announcement</h1><p>@Model.EventTitle</p></section>
+<section class="card form-card">
+    <p class="muted">This event has @Model.RegistrationCount registration record(s). The backend queues announcements only for confirmed attendees.</p>
+    <form asp-action="Announcement" asp-route-id="@Model.EventId" method="post">
+        <div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
+        <div class="form-field"><label asp-for="Subject"></label><input asp-for="Subject" maxlength="250" /><span asp-validation-for="Subject" class="field-validation"></span></div>
+        <div class="form-field"><label asp-for="Message"></label><textarea asp-for="Message" rows="8" maxlength="1000"></textarea><span asp-validation-for="Message" class="field-validation"></span></div>
+        <div class="action-row"><button type="submit" class="button">Queue announcement</button><a class="button secondary" asp-action="Attendees" asp-route-id="@Model.EventId">Cancel</a></div>
+    </form>
+</section>

@@ -1,0 +1,78 @@
+@model AdminUsersViewModel
+@using EventHub.Domin.Enums
+@{
+    ViewData["Title"] = "Users and roles";
+}
+
+<section class="page-heading">
+    <h1>Users and roles</h1>
+    <p>Change a user's primary application role through the existing Admin API.</p>
+</section>
+
+<form method="get" class="filter-card">
+    <div class="form-field">
+        <label asp-for="Filter.SearchValue">Search users</label>
+        <input asp-for="Filter.SearchValue" placeholder="Name or email" maxlength="200" />
+    </div>
+    <button type="submit" class="button">Search</button>
+</form>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="message success" role="status">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="message error" role="alert">@error</div>
+}
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="message error" role="alert">@Model.ErrorMessage</div>
+}
+else if (Model.Users.Items.Count == 0)
+{
+    <section class="card empty-state"><h2>No users found</h2></section>
+}
+else
+{
+    <section class="card table-card">
+        <div class="table-scroll">
+            <table>
+                <caption>Users and their primary application roles</caption>
+                <thead><tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col">Current role</th><th scope="col">Change role</th></tr></thead>
+                <tbody>
+                @foreach (var user in Model.Users.Items)
+                {
+                    <tr>
+                        <td>@user.FullName</td>
+                        <td><a href="mailto:@user.Email">@user.Email</a></td>
+                        <td><span class="status">@user.Role</span></td>
+                        <td>
+                            <form asp-action="UpdateUserRole" method="post" class="inline-form">
+                                <input name="UserId" type="hidden" value="@user.Id" />
+                                <select name="Role" aria-label="Role for @user.FullName">
+                                    <option value="@((int)UserRole.Admin)" selected="@(user.Role == nameof(UserRole.Admin) ? "selected" : null)">Admin</option>
+                                    <option value="@((int)UserRole.Organizer)" selected="@(user.Role == nameof(UserRole.Organizer) ? "selected" : null)">Organizer</option>
+                                    <option value="@((int)UserRole.Attendee)" selected="@(user.Role == nameof(UserRole.Attendee) ? "selected" : null)">Attendee</option>
+                                </select>
+                                <button type="submit" class="button secondary">Save</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <nav class="pagination" aria-label="User pages">
+        @if (Model.Users.HasPreviousPage)
+        {
+            <a asp-action="Users" asp-route-searchValue="@Model.Filter.SearchValue" asp-route-pageNumber="@(Model.Users.PageNumber - 1)">Previous</a>
+        }
+        <span>Page @Model.Users.PageNumber of @Model.Users.TotalPages</span>
+        @if (Model.Users.HasNextPage)
+        {
+            <a asp-action="Users" asp-route-searchValue="@Model.Filter.SearchValue" asp-route-pageNumber="@(Model.Users.PageNumber + 1)">Next</a>
+        }
+    </nav>
+}

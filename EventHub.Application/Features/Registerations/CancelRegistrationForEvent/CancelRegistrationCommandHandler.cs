@@ -41,6 +41,9 @@ namespace EventHub.Application.Features.Registerations.CancelRegistrationForEven
                     var @event = await _eventRepository.GetByIdAsTrackingAsync(registration.EventId, cancellationToken);
                     if (@event != null)
                     {
+                        if (@event.Status == EventStatus.Completed || @event.EventDate <= DateTime.UtcNow)
+                            return RequestResult<bool>.Failure(ErrorCode.RegistrationClosed, "Completed events can no longer be canceled.");
+
                         @event.DecrementAttendees();
                     }
 

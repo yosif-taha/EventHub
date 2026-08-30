@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EventHub</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Primary navigation">
+            <a class="brand" asp-controller="Home" asp-action="Index">EventHub</a>
+            <div class="nav-actions">
+                <a asp-controller="Events" asp-action="Index">Events</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    @if (User.IsInRole(RoleNames.Attendee))
+                    {
+                        <a asp-controller="Registrations" asp-action="My">My registrations</a>
+                    }
+                    @if (User.IsInRole(RoleNames.Organizer))
+                    {
+                        <a asp-controller="Organizer" asp-action="Dashboard">Organizer dashboard</a>
+                        <a asp-controller="Organizer" asp-action="Events">My events</a>
+                    }
+                    @if (User.IsInRole(RoleNames.Admin))
+                    {
+                        <a asp-controller="Admin" asp-action="Dashboard">Admin dashboard</a>
+                        <a asp-controller="Admin" asp-action="Users">Users</a>
+                        <a asp-controller="Admin" asp-action="Events">Manage events</a>
+                        <a asp-controller="Admin" asp-action="Registrations">Registrations</a>
+                    }
+                    <span class="user-name">@User.Identity.Name</span>
+                    <form asp-controller="Auth" asp-action="Logout" method="post">
+                        <button type="submit" class="link-button">Log out</button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Auth" asp-action="Login">Log in</a>
+                    <a asp-controller="Auth" asp-action="Register">Register</a>
+                }
+            </div>
+        </nav>
+    </header>
+    <main id="main-content" class="page-content" tabindex="-1">
+        @RenderBody()
+    </main>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

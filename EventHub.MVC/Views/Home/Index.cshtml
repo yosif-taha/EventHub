@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+<section class="card">
+    <h1>EventHub</h1>
+    <p>Discover events, manage registrations, and keep every event experience organized.</p>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        @if (User.IsInRole(RoleNames.Admin))
+        {
+            <a class="button" asp-controller="Admin" asp-action="Dashboard">Open admin dashboard</a>
+        }
+        else if (User.IsInRole(RoleNames.Organizer))
+        {
+            <a class="button" asp-controller="Organizer" asp-action="Dashboard">Open organizer dashboard</a>
+        }
+        else
+        {
+            <a class="button" asp-controller="Registrations" asp-action="My">View my registrations</a>
+        }
+        <a class="button secondary" asp-controller="Events" asp-action="Index">Browse events</a>
+    }
+    else
+    {
+        <a class="button" asp-controller="Events" asp-action="Index">Browse events</a>
+        <a class="button secondary" asp-controller="Auth" asp-action="Register">Create an account</a>
+    }
+</section>
