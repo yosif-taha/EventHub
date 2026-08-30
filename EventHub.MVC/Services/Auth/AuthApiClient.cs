@@ -29,6 +29,18 @@ public sealed class AuthApiClient(
             new RegisterApiRequest(request.FullName, request.Email, request.Password, request.PhoneNumber),
             cancellationToken);
 
+    public Task<ApiCallResult<bool>> ConfirmEmailAsync(Guid userId, string code, CancellationToken cancellationToken) =>
+        PostOperationAsync(
+            "api/Auth/ConfirmEmail",
+            new ConfirmEmailApiRequest(userId.ToString(), code),
+            cancellationToken);
+
+    public Task<ApiCallResult<bool>> ResetPasswordAsync(ResetPasswordViewModel request, CancellationToken cancellationToken) =>
+        PostOperationAsync(
+            "api/Auth/ResetPassword",
+            new ResetPasswordApiRequest(request.Email, request.Code, request.NewPassword),
+            cancellationToken);
+
     private async Task<ApiCallResult<TResponse>> PostAsync<TRequest, TResponse>(
         string endpoint,
         TRequest request,
@@ -71,6 +83,48 @@ public sealed class AuthApiClient(
         }
     }
 
+    private async Task<ApiCallResult<bool>> PostOperationAsync<TRequest>(
+        string endpoint,
+        TRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var response = await httpClientFactory.CreateClient(HttpClientName)
+                .PostAsJsonAsync(endpoint, request, JsonOptions, cancellationToken);
+
+            ApiResponseEnvelope<JsonElement>? envelope = null;
+            try
+            {
+                envelope = await response.Content.ReadFromJsonAsync<ApiResponseEnvelope<JsonElement>>(JsonOptions, cancellationToken);
+            }
+            catch (JsonException)
+            {
+                logger.LogWarning("The backend API returned an unreadable response for {Endpoint} with status {StatusCode}.", endpoint, response.StatusCode);
+            }
+
+            if (response.IsSuccessStatusCode && envelope?.IsSuccess == true)
+                return ApiCallResult<bool>.Success(true);
+
+            var message = envelope?.Message ?? GetSafeFailureMessage(response.StatusCode);
+            return ApiCallResult<bool>.Failure(message, GetFailureKind(response.StatusCode, envelope?.ErrorCode), envelope?.ErrorCode);
+        }
+        catch (HttpRequestException)
+        {
+            logger.LogWarning("The backend API could not be reached for {Endpoint}.", endpoint);
+            return ApiCallResult<bool>.Failure(
+                "The service is currently unavailable. Please try again shortly.",
+                ApiFailureKind.Unavailable);
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning("The backend API request timed out for {Endpoint}.", endpoint);
+            return ApiCallResult<bool>.Failure(
+                "The service is taking too long to respond. Please try again.",
+                ApiFailureKind.Unavailable);
+        }
+    }
+
     private static ApiFailureKind GetFailureKind(HttpStatusCode statusCode, int? errorCode) =>
         statusCode switch
         {
@@ -96,4 +150,6 @@ public sealed class AuthApiClient(
     private sealed record LoginApiRequest(string Email, string Password);
 
     private sealed record RegisterApiRequest(string FullName, string Email, string Password, string? PhoneNumber);
+    private sealed record ConfirmEmailApiRequest(string UserId, string Code);
+    private sealed record ResetPasswordApiRequest(string Email, string Code, string NewPassword);
 }

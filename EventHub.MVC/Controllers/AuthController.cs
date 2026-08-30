@@ -77,6 +77,62 @@ public sealed class AuthController(IAuthApiClient authApiClient, IMvcAuthenticat
     [HttpGet]
     public IActionResult RegistrationComplete() => View();
 
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult ConfirmEmail(Guid? userId, string? code)
+    {
+        if (!userId.HasValue || string.IsNullOrWhiteSpace(code))
+            return BadRequest();
+
+        return View(new ConfirmEmailViewModel { UserId = userId.Value, Code = code });
+    }
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ConfirmEmail(ConfirmEmailViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var result = await authApiClient.ConfirmEmailAsync(model.UserId, model.Code, cancellationToken);
+        if (!result.IsSuccess)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            return View(model);
+        }
+
+        return View("ConfirmEmailComplete");
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult ResetPassword(string? email, string? code)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))
+            return BadRequest();
+
+        return View(new ResetPasswordViewModel { Email = email, Code = code });
+    }
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var result = await authApiClient.ResetPasswordAsync(model, cancellationToken);
+        if (!result.IsSuccess)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            return View(model);
+        }
+
+        return View("ResetPasswordComplete");
+    }
+
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]

@@ -4,13 +4,28 @@ using EventHub.Domin.Models;
 using EventHub.Persistence.Data.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventHub.Persistence.DataSeeding
 {
     public class DbInitializer(EventDbContext _context ,
         UserManager<ApplicationUser> _userManager,
-        RoleManager<IdentityRole<Guid>> _roleManager) : IDbInitializer
+        RoleManager<IdentityRole<Guid>> _roleManager,
+        IConfiguration configuration) : IDbInitializer
     {
+        private readonly BootstrapAdminSettings _bootstrapAdminSettings = new()
+        {
+            Enabled = bool.TryParse(configuration["BootstrapAdminSettings:Enabled"], out var enabled) && enabled,
+            Email = configuration["BootstrapAdminSettings:Email"],
+            Password = configuration["BootstrapAdminSettings:Password"],
+            FullName = configuration["BootstrapAdminSettings:FullName"]
+        };
+        private readonly bool _isDevelopment = string.Equals(
+            configuration["ASPNETCORE_ENVIRONMENT"] ?? configuration["DOTNET_ENVIRONMENT"],
+            "Development",
+            StringComparison.OrdinalIgnoreCase);
+
         public async Task IntiliazeAsync()
         {
             if (_context.Database.GetPendingMigrationsAsync().GetAwaiter().GetResult().Any()) // GetPendingMigrationsAsync():- this fun to get all migration not appling to database. Any():- return true or false. 
@@ -24,44 +39,8 @@ namespace EventHub.Persistence.DataSeeding
             await EnsureRoleExistsAsync(EventHub.Domin.Constants.RoleNames.Attendee);
             await MigrateLegacyAttendeeRoleAsync();
 
-            if(!_context.Users.Any())
-            {
-                var user1 = new ApplicationUser()
-                {
-                    Email = "AhmedSamy@gmail.com",
-                    UserName = "AhmedSamy@gmail.com",
-                    FullName = "Ahmed Samy",
-                    PhoneNumber = "1239877890",
-                    EmailConfirmed = true,
-                    Role = UserRole.Admin,
-                };
-                var user2 = new ApplicationUser()
-                {
-                    Email = "MohamedHany@gmail.com",
-                    UserName = "MohamedHany@gmail.com",
-                    FullName = "Mohamed Hany",
-                    PhoneNumber = "4598598000",
-                    EmailConfirmed = true,
-                    Role = UserRole.Attendee,
-                };
-                var user3 = new ApplicationUser()
-                {
-                    Email = "SaraHossam@gmail.com",
-                    UserName = "SaraHossam@gmail.com",
-                    FullName = "Sara ossam",
-                    PhoneNumber = "9847200422",
-                    EmailConfirmed = true,
-                    Role = UserRole.Organizer,
-                };
-
-                await _userManager.CreateAsync(user1,"P@ssword123");
-                await _userManager.CreateAsync(user2,"P@ssword456");
-                await _userManager.CreateAsync(user3,"P@ssword789");
-
-                await _userManager.AddToRoleAsync(user1, EventHub.Domin.Constants.RoleNames.Admin);
-                await _userManager.AddToRoleAsync(user2, EventHub.Domin.Constants.RoleNames.Attendee);
-                await _userManager.AddToRoleAsync(user3, EventHub.Domin.Constants.RoleNames.Organizer);
-            }
+            if (!_isDevelopment)
+                await BootstrapAdminAsync();
 
             await SynchronizeApplicationRolesAsync();
         }
@@ -116,17 +95,52 @@ namespace EventHub.Persistence.DataSeeding
                         ? UserRole.Organizer
                         : UserRole.Attendee;
 
-                var isLegacySeedUser = user.Email is "AhmedSamy@gmail.com" or "MohamedHany@gmail.com" or "SaraHossam@gmail.com";
-                if (user.Role == primaryRole && (!isLegacySeedUser || user.EmailConfirmed))
+                if (user.Role == primaryRole)
                     continue;
 
                 user.Role = primaryRole;
-                if (isLegacySeedUser)
-                    user.EmailConfirmed = true;
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                     throw new InvalidOperationException($"Unable to synchronize role for user '{user.Id}'.");
             }
+        }
+
+        private async Task BootstrapAdminAsync()
+        {
+            if (!_bootstrapAdminSettings.Enabled)
+                return;
+
+            var validationResults = new List<ValidationResult>();
+            if (!Validator.TryValidateObject(_bootstrapAdminSettings, new ValidationContext(_bootstrapAdminSettings), validationResults, true))
+                throw new InvalidOperationException("Bootstrap administrator configuration is invalid.");
+
+            var existingAdministrators = await _userManager.GetUsersInRoleAsync(EventHub.Domin.Constants.RoleNames.Admin);
+            if (existingAdministrators.Count > 0)
+                return;
+
+            var existingUser = await _userManager.FindByEmailAsync(_bootstrapAdminSettings.Email!);
+            if (existingUser is not null)
+                throw new InvalidOperationException("Bootstrap administrator email already belongs to a user. Assign the administrator role explicitly.");
+
+            var administrator = new ApplicationUser
+            {
+                Email = _bootstrapAdminSettings.Email,
+                UserName = _bootstrapAdminSettings.Email,
+                FullName = _bootstrapAdminSettings.FullName!,
+                EmailConfirmed = true,
+                Role = UserRole.Admin
+            };
+
+            var createResult = await _userManager.CreateAsync(administrator, _bootstrapAdminSettings.Password!);
+            if (!createResult.Succeeded)
+                throw new InvalidOperationException("Unable to create the configured bootstrap administrator.");
+
+            var roleResult = await _userManager.AddToRoleAsync(administrator, EventHub.Domin.Constants.RoleNames.Admin);
+            if (roleResult.Succeeded)
+                return;
+
+            await _userManager.DeleteAsync(administrator);
+            throw new InvalidOperationException("Unable to assign the administrator role to the configured bootstrap administrator.");
         }
     }
 }
