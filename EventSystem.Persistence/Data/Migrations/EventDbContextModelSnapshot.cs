@@ -323,11 +323,36 @@ namespace EventHub.Persistence.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("MerchantOrderId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("OrderCreationAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OrderCreationFailureReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("OrderCreationLastAttemptAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OrderCreationStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending");
+
                     b.Property<string>("PaymobOrderId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PaymobTransactionId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PaymentUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<Guid>("RegistrationId")
                         .HasColumnType("uniqueidentifier");
@@ -350,6 +375,8 @@ namespace EventHub.Persistence.Data.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("MerchantOrderId");
 
                     b.HasIndex("PaymobOrderId")
                         .IsUnique()

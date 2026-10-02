@@ -7,7 +7,8 @@ namespace EventHub.Application.Contracts
             string FirstNAme,
             string LastName,
             string PhoneNumber,
-            string Email
+            string Email,
+            string MerchantOrderId
     );
 
     public record PaymobPaymentResponse(
