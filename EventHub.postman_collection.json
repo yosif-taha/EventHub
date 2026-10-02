@@ -1,0 +1,148 @@
+{
+  "info": {
+    "_postman_id": "85c07c95-f5a6-4e43-946a-4a9f5b97d795",
+    "name": "EventHub Web API",
+    "description": "Complete collection for the currently exposed EventHub Web API routes. All API responses use the envelope { isSuccess, message, data? } (failures also include errorCode). Set testEmail and testPassword in the selected environment before exercising authentication. Protected requests use jwtToken; log in as the role stated in each request description before sending it.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://localhost:7158" },
+    { "key": "jwtToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "eventId", "value": "" },
+    { "key": "registrationId", "value": "" },
+    { "key": "categoryId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "pm.test('Registration response envelope is successful', () => pm.expect(body.isSuccess).to.eql(true));", "if (typeof body.data === 'string') pm.environment.set('userId', body.data);"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Postman Test Attendee\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"phoneNumber\": \"\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Auth/Register", "description": "Anonymous. Requires an email, full name (maximum 100 characters), password (minimum 8 characters), and optional phone number." }
+        },
+        {
+          "name": "Login (saves JWT, refresh token, and user ID)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "pm.test('Login response envelope is successful', () => pm.expect(body.isSuccess).to.eql(true));", "if (body.data) {", "  pm.environment.set('jwtToken', body.data.token);", "  pm.environment.set('refreshToken', body.data.refreshToken);", "  pm.environment.set('userId', body.data.id);", "}"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Auth/Login", "description": "Anonymous. Account email must have been confirmed. Stores values only in the selected Postman environment." }
+        },
+        {
+          "name": "Refresh Token (saves rotated tokens)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "pm.test('Refresh response envelope is successful', () => pm.expect(body.isSuccess).to.eql(true));", "if (body.data) {", "  pm.environment.set('jwtToken', body.data.token);", "  pm.environment.set('refreshToken', body.data.refreshToken);", "  pm.environment.set('userId', body.data.id);", "}"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"token\": \"{{jwtToken}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Auth/RefreshToken", "description": "Anonymous endpoint. Submit the access token and refresh token from a prior login/refresh." }
+        },
+        {
+          "name": "Confirm Email",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"code\": \"{{confirmationCode}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Auth/ConfirmEmail", "description": "Anonymous. Paste the user ID and URL-decoded confirmation code from the trusted public confirmation link. Do not share or commit the code." }
+        },
+        {
+          "name": "Resend Confirmation Email",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{testEmail}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Auth/ResendConfirmationEmail", "description": "Anonymous." }
+        },
+        {
+          "name": "Send Password Reset Email",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{testEmail}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Auth/SendResetPassword", "description": "Anonymous." }
+        },
+        {
+          "name": "Reset Password",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"code\": \"{{resetCode}}\",\n  \"newPassword\": \"{{testPassword}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Auth/ResetPassword", "description": "Anonymous. The new password must be at least 8 characters. Paste the URL-decoded reset code; it is sensitive." }
+        }
+      ]
+    },
+    {
+      "name": "Account",
+      "item": [
+        { "name": "Get User Profile", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/Account/GetUserProfile", "description": "Authenticated user." } },
+        { "name": "Update User Profile", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Updated Postman User\",\n  \"phoneNumber\": \"\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Account/UpdateUserProfile", "description": "Authenticated user." } },
+        { "name": "Change Password", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"{{testPassword}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Account/ChangePassword", "description": "Authenticated user. Set a distinct, at-least-eight-character newPassword before sending; this sample intentionally does not prescribe credentials." } }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        { "name": "Get All Categories (public)", "request": { "method": "GET", "url": "{{baseUrl}}/api/Category/GetAllCategories", "description": "Anonymous." } },
+        { "name": "Get Category by ID (public)", "request": { "method": "GET", "url": "{{baseUrl}}/api/Category/GetCategoryById?id={{categoryId}}", "description": "Anonymous." } },
+        { "name": "Create Category (Admin)", "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "if (body.isSuccess && body.data) pm.environment.set('categoryId', body.data);"] } }], "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Category\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Category/CreateCategory", "description": "Admin only." } },
+        { "name": "Update Category (Admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"id\": \"{{categoryId}}\",\n  \"name\": \"Updated Postman Category\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Category/UpdateCategory", "description": "Admin only." } },
+        { "name": "Delete Category (Admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "url": "{{baseUrl}}/api/Category/DeleteCategory?id={{categoryId}}", "description": "Admin only." } }
+      ]
+    },
+    {
+      "name": "Public Events",
+      "item": [
+        { "name": "List Events (public)", "request": { "method": "GET", "url": "{{baseUrl}}/api/events?pageNumber=1&pageSize=10&searchValue=&sortColumn=Title&sortDirection=asc&categoryId={{categoryId}}", "description": "Anonymous. pageSize must be 1-50; sortColumn may be Title or Location. Clear categoryId when not filtering." } },
+        { "name": "Get Event by ID (public)", "request": { "method": "GET", "url": "{{baseUrl}}/api/events/{{eventId}}", "description": "Anonymous. The public response intentionally excludes an online meeting URL." } },
+        { "name": "Check Event Availability (public)", "request": { "method": "GET", "url": "{{baseUrl}}/api/Event/CheckEventAvailability?id={{eventId}}", "description": "Anonymous. This action currently has only its conventional controller/action route." } }
+      ]
+    },
+    {
+      "name": "Event Management",
+      "item": [
+        { "name": "Get Managed Event (Admin or Organizer)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/events/{{eventId}}/management", "description": "Admin or Organizer. The backend enforces organizer ownership. The management response may include the online meeting URL." } },
+        { "name": "Create Event (Admin or Organizer)", "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "if (body.isSuccess && body.data) pm.environment.set('eventId', body.data);"] } }], "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Postman Sample Event\",\n  \"description\": \"A sample event created through the EventHub API collection.\",\n  \"eventDate\": \"2030-12-31T18:00:00Z\",\n  \"price\": 0,\n  \"location\": \"Postman test location\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"maxAttendees\": 25,\n  \"mode\": 0,\n  \"onlineMeetingUrl\": null\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/events", "description": "Admin or Organizer. Enum values are numeric: mode Offline=0, Online=1. Online events require an absolute onlineMeetingUrl; offline events must leave it null/empty." } },
+        { "name": "Update Event (Admin or Organizer)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated Postman Sample Event\",\n  \"description\": \"An updated sample event.\",\n  \"eventDate\": \"2031-01-01T18:00:00Z\",\n  \"location\": \"Updated Postman test location\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"maxAttendees\": 30,\n  \"mode\": 0,\n  \"onlineMeetingUrl\": null\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/events/{{eventId}}", "description": "Admin or Organizer. All body fields are optional, but any supplied field must meet its validator rule. Event ID comes from the route." } },
+        { "name": "Update Event Status (Admin or Organizer)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": 2\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/events/{{eventId}}/status", "description": "Admin or Organizer. Numeric EventStatus: Scheduled=0, Completed=1, Canceled=2. The backend enforces organizer ownership." } },
+        { "name": "Delete Event (Admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "DELETE", "url": "{{baseUrl}}/api/events/{{eventId}}", "description": "Admin only." } }
+      ]
+    },
+    {
+      "name": "Attendee Registrations",
+      "item": [
+        { "name": "Register for Event by Path (Attendee)", "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "pm.test('Registration response envelope is successful', () => pm.expect(body.isSuccess).to.eql(true));", "if (body.data && body.data.registrationId) pm.environment.set('registrationId', body.data.registrationId);", "if (body.data && body.data.paymentUrl) console.log('Paymob payment URL:', body.data.paymentUrl);"] } }], "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "url": "{{baseUrl}}/api/registrations/{{eventId}}", "description": "Attendee only. Free events confirm directly. Paid events return a PaymentUrl, but the Paymob browser return is not payment proof; query registration status after the signed webhook is processed." } },
+        { "name": "Register for Event by Body (Attendee)", "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "if (body.data && body.data.registrationId) pm.environment.set('registrationId', body.data.registrationId);"] } }], "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventId\": \"{{eventId}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/registrations", "description": "Attendee only. This is a second, body-based route for the same registration operation." } },
+        { "name": "Cancel Registration (Attendee)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "DELETE", "url": "{{baseUrl}}/api/registrations/{{registrationId}}", "description": "Attendee only. The backend validates that the registration belongs to the authenticated attendee." } },
+        { "name": "List My Registrations (Attendee)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/registrations/me?pageNumber=1&pageSize=10", "description": "Attendee only. pageSize must be 1-50." } },
+        { "name": "Get My Registration / Payment Status (Attendee)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/registrations/{{registrationId}}/status", "description": "Attendee only and attendee-owned. This is the authoritative webhook-synchronized status for MVC/clients after a Paymob return." } },
+        { "name": "Get My Event Meeting Link (Attendee)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/registrations/events/{{eventId}}/meeting-link", "description": "Attendee only. Backend ownership/registration checks protect the online meeting URL." } },
+        { "name": "List Event Registrations (Admin or Organizer)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/events/{{eventId}}/registrations?pageNumber=1&pageSize=10", "description": "Admin or Organizer. Organizer access is enforced against event ownership by the backend." } }
+      ]
+    },
+    {
+      "name": "Organizer",
+      "item": [
+        { "name": "List My Events (Organizer)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/organizer/events?pageNumber=1&pageSize=10&searchValue=&sortColumn=Title&sortDirection=asc&categoryId={{categoryId}}", "description": "Organizer only. Results are scoped to the authenticated organizer. Allowed sort columns: Title, Location, EventDate, Status." } },
+        { "name": "Organizer Dashboard (Organizer)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/organizer/dashboard", "description": "Organizer only; data is backend-scoped to the authenticated organizer." } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        { "name": "Admin Dashboard", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/admin/dashboard", "description": "Admin only." } },
+        { "name": "Global Registrations (Admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/admin/registrations?pageNumber=1&pageSize=10", "description": "Admin only. pageSize must be 1-50." } },
+        { "name": "List Users (Admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/Admin/GetUsers?pageNumber=1&pageSize=10&searchValue=", "description": "Admin only. pageSize must be 1-100." } },
+        { "name": "Update User Role (Admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"role\": 2\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Admin/UpdateUserRole/{{userId}}", "description": "Admin only. UserRole is numeric: Admin=0, Organizer=1, Attendee=2." } }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        { "name": "Queue Event Announcement (Admin or Organizer)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"subject\": \"Event announcement\",\n  \"message\": \"This is a notification test.\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/notifications", "description": "Admin or Organizer. Subject maximum is 250 characters; message maximum is 1000. The notification is queued; delivery occurs in the existing background notification service." } }
+      ]
+    },
+    {
+      "name": "Paymob Webhook",
+      "item": [
+        { "name": "Handle Signed Paymob Callback", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"obj\": {\n    \"id\": 0,\n    \"success\": false,\n    \"amount_cents\": 0,\n    \"currency\": \"EGP\",\n    \"pending\": false,\n    \"order\": {\n      \"id\": 0,\n      \"merchant_order_id\": \"\"\n    }\n  }\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/payments/paymob/webhook?hmac={{paymobHmac}}", "description": "Anonymous provider callback endpoint. It fail-closes when HmacSecret or hmac is missing/invalid. Replace the entire payload and hmac only with a real Paymob callback/signature for an isolated test transaction. The placeholder is intentionally invalid and should not be sent as a success test. Browser returns never confirm payment; the signed webhook is authoritative." } }
+      ]
+    },
+    {
+      "name": "Compatibility Routes (same operations)",
+      "description": "These are additional conventional attribute-routed URLs exposed by the current controllers. They invoke the same handlers as the canonical requests above and are included so the collection reflects every current route.",
+      "item": [
+        { "name": "List Events (compatibility)", "request": { "method": "GET", "url": "{{baseUrl}}/api/Event/GetAllEvents?pageNumber=1&pageSize=10&searchValue=&sortColumn=Title&sortDirection=asc&categoryId={{categoryId}}" } },
+        { "name": "Get Event by ID (compatibility)", "request": { "method": "GET", "url": "{{baseUrl}}/api/Event/GetEventById?id={{eventId}}" } },
+        { "name": "Create Event (compatibility)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Postman Sample Event\",\n  \"description\": \"A sample event created through the compatibility route.\",\n  \"eventDate\": \"2030-12-31T18:00:00Z\",\n  \"price\": 0,\n  \"location\": \"Postman test location\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"maxAttendees\": 25,\n  \"mode\": 0,\n  \"onlineMeetingUrl\": null\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Event/CreateEvent" } },
+        { "name": "Update Event (compatibility)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"id\": \"{{eventId}}\",\n  \"title\": \"Updated Postman Sample Event\",\n  \"description\": \"An updated sample event.\",\n  \"eventDate\": \"2031-01-01T18:00:00Z\",\n  \"location\": \"Updated Postman test location\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"maxAttendees\": 30,\n  \"mode\": 0,\n  \"onlineMeetingUrl\": null\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Event/UpdateEvent" } },
+        { "name": "Update Event Status (compatibility)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": 2\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Event/UpdateEventStatus/{{eventId}}" } },
+        { "name": "Delete Event (compatibility)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "url": "{{baseUrl}}/api/Event/DeleteEvent?id={{eventId}}" } },
+        { "name": "Register for Event by Path (compatibility)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "url": "{{baseUrl}}/api/Registration/RegisterForEvent/{{eventId}}" } },
+        { "name": "Cancel Registration (compatibility)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "POST", "url": "{{baseUrl}}/api/Registration/CancelRegisterForEvent/{{registrationId}}" } },
+        { "name": "List My Registrations (compatibility)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/Registration/GetRegistrations?pageNumber=1&pageSize=10" } },
+        { "name": "List Event Registrations (compatibility)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwtToken}}", "type": "string" }] }, "method": "GET", "url": "{{baseUrl}}/api/Registration/GetEventRegistrations/{{eventId}}?pageNumber=1&pageSize=10" } },
+        { "name": "Handle Paymob Callback (compatibility)", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"obj\": {\n    \"id\": 0,\n    \"success\": false,\n    \"amount_cents\": 0,\n    \"currency\": \"EGP\",\n    \"pending\": false,\n    \"order\": { \"id\": 0, \"merchant_order_id\": \"\" }\n  }\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/Payment/HandleWebhook?hmac={{paymobHmac}}" } }
+      ]
+    }
+  ]
+}

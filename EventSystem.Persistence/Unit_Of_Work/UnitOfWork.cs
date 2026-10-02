@@ -1,4 +1,5 @@
 ﻿using EventHub.Application.Contracts;
+using EventHub.Application.Common.Responses;
 using EventHub.Persistence.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -28,6 +29,13 @@ namespace EventHub.Persistence.Unit_Of_Work
                 var result = await action();
                 if (isOuterTransaction)
                 {
+                    if (result is ITransactionResult transactionResult && !transactionResult.IsSuccess)
+                    {
+                        await _transaction!.RollbackAsync(cancellationToken);
+                        _context.ChangeTracker.Clear();
+                        return result;
+                    }
+
                     await _context.SaveChangesAsync(cancellationToken);
                     await _transaction!.CommitAsync(cancellationToken);
                 }
@@ -36,7 +44,10 @@ namespace EventHub.Persistence.Unit_Of_Work
             catch (Exception)
             {
                 if (isOuterTransaction && _transaction is not null)
+                {
                     await _transaction.RollbackAsync(cancellationToken);
+                    _context.ChangeTracker.Clear();
+                }
                 throw;
             }
             finally

@@ -2,7 +2,7 @@
 
 namespace EventHub.Application.Common.Responses
 {
-    public record RequestResult<TResult>
+    public record RequestResult<TResult> : ITransactionResult
     {
         public TResult? Data { get; init; }
         public bool IsSuccess { get; init; }

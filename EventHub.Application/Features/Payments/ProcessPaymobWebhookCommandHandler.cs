@@ -36,6 +36,16 @@ namespace EventHub.Application.Features.Payments
                         paymentTransaction => paymentTransaction.PaymobOrderId == paymobOrderId,
                         cancellationToken);
 
+                    // A database failure can happen after Paymob created an order but before its ID was
+                    // persisted locally. The durable merchant reference lets an authenticated callback
+                    // reconcile that mapping without creating another provider order.
+                    if (transaction is null && !string.IsNullOrWhiteSpace(transactionData.Order.MerchantOrderId))
+                    {
+                        transaction = await _transactionRepository.FirstOrDefaultAsTrackingAsync(
+                            paymentTransaction => paymentTransaction.MerchantOrderId == transactionData.Order.MerchantOrderId,
+                            cancellationToken);
+                    }
+
                     if (transaction == null)
                         return RequestResult<bool>.Failure(ErrorCode.TransactionNotFound, "Transaction not found.");
 
@@ -43,10 +53,20 @@ namespace EventHub.Application.Features.Payments
                     if (registration == null)
                         return RequestResult<bool>.Failure(ErrorCode.RegistrationNotFound, "Associated registration not found.");
 
-                    if (transactionData.Order.MerchantOrderId != registration.Id.ToString() ||
+                    var expectedMerchantOrderId = string.IsNullOrWhiteSpace(transaction.MerchantOrderId)
+                        ? registration.Id.ToString()
+                        : transaction.MerchantOrderId;
+                    if (!string.Equals(transactionData.Order.MerchantOrderId, expectedMerchantOrderId, StringComparison.OrdinalIgnoreCase) ||
                         transactionData.AmountCents != decimal.ToInt64(transaction.Amount * 100) ||
                         !string.Equals(transactionData.Currency, transaction.Currency, StringComparison.OrdinalIgnoreCase))
                         return RequestResult<bool>.Failure(ErrorCode.PaymentProviderError, "The Paymob callback does not match the pending payment transaction.");
+
+                    if (transaction.PaymobOrderId is null)
+                    {
+                        transaction.PaymobOrderId = paymobOrderId;
+                        transaction.OrderCreationStatus = PaymentOrderCreationStatus.Created;
+                        transaction.OrderCreationFailureReason = null;
+                    }
 
                     if (transactionData.Pending)
                         return RequestResult<bool>.Success(true);
@@ -123,7 +143,9 @@ namespace EventHub.Application.Features.Payments
             var persistedTransaction = await _transactionRepository.GetAll()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(
-                    transaction => transaction.PaymobOrderId == callback.Order.Id.ToString(),
+                    transaction => transaction.PaymobOrderId == callback.Order.Id.ToString() ||
+                        (!string.IsNullOrWhiteSpace(callback.Order.MerchantOrderId) &&
+                         transaction.MerchantOrderId == callback.Order.MerchantOrderId),
                     cancellationToken);
 
             if (persistedTransaction is not null && IsCallbackOutcomePersisted(

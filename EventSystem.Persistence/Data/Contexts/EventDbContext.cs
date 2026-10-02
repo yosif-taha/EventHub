@@ -12,7 +12,7 @@ namespace EventHub.Persistence.Data.Contexts
 {
     public class EventDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
-        public EventDbContext(DbContextOptions<EventDbContext> options)
+        public EventDbContext(DbContextOptions options)
             : base(options)
         {
         }

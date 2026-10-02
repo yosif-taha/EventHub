@@ -26,7 +26,7 @@ namespace EventHub.Infrastructure.Payment
                 delivery_needed = "false",
                 amount_cents = (int)decimal.Round(request.Amount * 100, 0, MidpointRounding.AwayFromZero),
                 currency = "EGP",
-                merchant_order_id = request.RegistrationId.ToString(), 
+                merchant_order_id = request.MerchantOrderId,
                 items = new[] { new { name = "Event Ticket", amount_cents = (int)decimal.Round(request.Amount * 100, 0, MidpointRounding.AwayFromZero), quantity = 1 } }
             };
 
