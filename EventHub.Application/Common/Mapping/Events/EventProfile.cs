@@ -20,12 +20,12 @@ namespace EventHub.Application.Common.Mapping.Events
                 .ForMember(dest => dest.PaymentRequired, opt => opt.MapFrom(src => src.Price > 0));
 
             CreateMap<Event,EventAvailabilityDto>()
-                .ForMember(dest => dest.RemainingSlots, opt => opt.MapFrom(src => src.MaxAttendees - src.CurrentAttendeesCount))
-                .ForMember(dest => dest.IsAvailable, opt => opt.MapFrom(src =>
+                .ForCtorParam(nameof(EventAvailabilityDto.RemainingSlots), opt => opt.MapFrom(src => src.MaxAttendees - src.CurrentAttendeesCount))
+                .ForCtorParam(nameof(EventAvailabilityDto.IsAvailable), opt => opt.MapFrom(src =>
                     src.Status == EventStatus.Scheduled &&
                     src.EventDate > DateTime.UtcNow &&
                     src.CurrentAttendeesCount < src.MaxAttendees))
-                .ForMember(dest => dest.IsCancelled, opt => opt.MapFrom(src => src.Status == EventStatus.Canceled));
+                .ForCtorParam(nameof(EventAvailabilityDto.IsCancelled), opt => opt.MapFrom(src => src.Status == EventStatus.Canceled));
         }
     }
 }

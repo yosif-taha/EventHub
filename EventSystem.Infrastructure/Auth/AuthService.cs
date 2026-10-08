@@ -24,7 +24,9 @@ namespace EventHub.Infrastructure.Auth
         private readonly int _refreshTokenExpiryDays = 14;
         public async Task<RequestResult<AuthResponse?>> LoginAsync(string email, string password, CancellationToken ct)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var normalizedEmail = _userManager.NormalizeEmail(email);
+            var user = await _userManager.Users.AsTracking()
+                .SingleOrDefaultAsync(user => user.NormalizedEmail == normalizedEmail, ct);
             if (user is null)
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.UserNotFound);
 
@@ -49,7 +51,9 @@ namespace EventHub.Infrastructure.Auth
                     ExpiresOn = refreshTokenExpiration,
                 });
 
-                await _userManager.UpdateAsync(user);
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                    return RequestResult<AuthResponse?>.Failure(ErrorCode.DatabaseError);
                 return RequestResult<AuthResponse?>.Success(new AuthResponse(user.Id.ToString(), user.Email, user.FullName, token, expiresIn, refreshtoken, refreshTokenExpiration));
 
             }
@@ -102,7 +106,11 @@ namespace EventHub.Infrastructure.Auth
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.InvalidCredentials);
 
            
-            var user = await _userManager.FindByIdAsync(userId);
+            if (!Guid.TryParse(userId, out var parsedUserId))
+                return RequestResult<AuthResponse?>.Failure(ErrorCode.UserNotFound);
+
+            var user = await _userManager.Users.AsTracking()
+                .SingleOrDefaultAsync(user => user.Id == parsedUserId, ct);
             if (user is null)
                 return RequestResult<AuthResponse?>.Failure(ErrorCode.UserNotFound);
             if (!user.EmailConfirmed)
@@ -133,7 +141,9 @@ namespace EventHub.Infrastructure.Auth
                     ExpiresOn = refreshTokenExpiration,
                 });
 
-                await _userManager.UpdateAsync(user);
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                    return RequestResult<AuthResponse?>.Failure(ErrorCode.DatabaseError);
                 return RequestResult<AuthResponse?>.Success(new AuthResponse(userId, user.Email, user.FullName, newtoken, expiresIn, newrefreshtoken, refreshTokenExpiration));
             }
             catch

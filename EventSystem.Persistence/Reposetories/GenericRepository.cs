@@ -17,7 +17,15 @@ namespace EventHub.Persistence.Reposetories
         public IQueryable<T> GetAll() => _dbSet.AsQueryable();
 
         public async Task<T?> GetByIdAsync(Guid id, CancellationToken ct) => await _dbSet.FirstOrDefaultAsync(t => t.Id == id, ct);
-        public async Task<T?> GetByIdAsTrackingAsync(Guid id, CancellationToken ct) => await _dbSet.AsTracking().FirstOrDefaultAsync(t => t.Id == id, ct);
+        public async Task<T?> GetByIdAsTrackingAsync(Guid id, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var localEntity = _dbSet.Local.FirstOrDefault(entity => entity.Id == id);
+            if (localEntity is not null)
+                return localEntity.IsDeleted ? null : localEntity;
+
+            return await _dbSet.AsTracking().FirstOrDefaultAsync(t => t.Id == id, ct);
+        }
         public async Task<T?> FirstOrDefaultAsTrackingAsync(Expression<Func<T, bool>> predicate, CancellationToken ct) =>
             await _dbSet.AsTracking().FirstOrDefaultAsync(predicate, ct);
         public async Task<TResult?> GetByIdProjectedAsync<TResult>(Expression<Func<T, bool>> predicate, IConfigurationProvider configuration, CancellationToken cancellationToken)
@@ -64,6 +72,7 @@ namespace EventHub.Persistence.Reposetories
                 entry = _context.Entry(localEntity);
             }
             entity.IsDeleted = true;
+            entry.Entity.IsDeleted = true;
             entry.Property(x => x.IsDeleted).IsModified = true;
         }
         public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken) => await _context.Set<T>().AnyAsync(predicate, cancellationToken);
