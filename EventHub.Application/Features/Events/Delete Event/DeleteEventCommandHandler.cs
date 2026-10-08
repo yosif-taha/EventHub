@@ -15,11 +15,11 @@ namespace EventHub.Application.Features.Events.Delete_Event
 
             return await _unitOfWork.ExecuteAsync(async () =>
             {
-                bool existingEvent = await _repository.AnyAsync(x => x.Id == request.Id, cancellationToken);
-                if (!existingEvent)
+                var existingEvent = await _repository.GetByIdAsTrackingAsync(request.Id, cancellationToken);
+                if (existingEvent is null)
                     return RequestResult<Unit>.Failure(ErrorCode.EventNotFound);
 
-                _repository.SoftDelete(new Event { Id = request.Id });
+                _repository.SoftDelete(existingEvent);
                 return RequestResult<Unit>.Success(Unit.Value);
             }, cancellationToken);
         }

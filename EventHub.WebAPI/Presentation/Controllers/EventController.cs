@@ -43,9 +43,13 @@ namespace EventHub.WebAPI.Presentation.Controllers
         }
        
         [HttpGet]
+        [AllowAnonymous]
+        public Task<ResponseViewModel> GetEventById([FromQuery] Guid id, CancellationToken ct) =>
+            GetEventByIdRoute(id, ct);
+
         [HttpGet("/api/events/{id:guid}")]
         [AllowAnonymous]
-        public async Task<ResponseViewModel> GetEventById(Guid id, CancellationToken ct)
+        public async Task<ResponseViewModel> GetEventByIdRoute([FromRoute] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new GetEventByIdQuery(id), ct);
             if (!result.IsSuccess)

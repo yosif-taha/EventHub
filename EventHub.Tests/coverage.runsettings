@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Include>[EventHub.*]*</Include>
+          <Exclude>[EventHub.Tests]*</Exclude>
+          <ExcludeByFile>**/Migrations/**,**/Views/**,**/obj/**</ExcludeByFile>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
